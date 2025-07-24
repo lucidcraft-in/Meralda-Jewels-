@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "179645452293",
+    "project_id": "meralda-gold-9ff64",
+    "storage_bucket": "meralda-gold-9ff64.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:179645452293:android:a72b6df57304bdf2604c6c",
+        "android_client_info": {
+          "package_name": "com.meralda_gold.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClSdHUopu_OOOVGReXyD8RvtnA4OfyMlU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
