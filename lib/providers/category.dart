@@ -7,7 +7,7 @@ class SliderModel {
   SliderModel({this.name});
 }
 
-class Category with ChangeNotifier {
+class CategoryProvider with ChangeNotifier {
   late FirebaseFirestore firestore;
   initiliase() {
     firestore = FirebaseFirestore.instance;

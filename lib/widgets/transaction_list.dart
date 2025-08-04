@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:meralda_gold_user/providers/transaction.dart';
 // import 'package:empty_widget/empty_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Providers/transaction.dart';
+
 import '../screens/uploadPaymentImage/sendPaymentRecipt.dart';
 
 class TransactionList extends StatefulWidget {
@@ -19,7 +20,7 @@ class _TransactionListState extends State<TransactionList>
   var selectedIndex = -1;
   bool isClick = false;
   var user;
-  Transaction? db;
+  TransactionProvider? db;
   List transactionList = [];
   double customerBalance = 0;
   double totalGram = 0;
@@ -55,7 +56,7 @@ class _TransactionListState extends State<TransactionList>
   }
 
   initialise() {
-    db = Transaction();
+    db = TransactionProvider();
     db!.initiliase();
 
     db!.read(user['id']).then((value) {

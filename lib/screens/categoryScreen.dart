@@ -10,7 +10,7 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  var categoryDb = Category();
+  var categoryDb = CategoryProvider();
   var categoryList = [];
   Future loadCategoary() async {
     categoryDb.initiliase();

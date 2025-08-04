@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:meralda_gold_user/Providers/transaction.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../widgets/transaction_list.dart';
-import '../providers/transaction.dart';
+
 import '../providers/user.dart';
 import 'homeNavigation.dart';
 import 'profile.dart';
-import 'uploadPaymentImage/sendPaymentRecipt.dart';
 
 class TransactionScreen extends StatefulWidget {
   static const routeName = "/transaction-screen";
@@ -17,11 +18,10 @@ class TransactionScreen extends StatefulWidget {
   _TransactionScreenState createState() => _TransactionScreenState();
 }
 
-class _TransactionScreenState extends State<TransactionScreen>
-    with SingleTickerProviderStateMixin {
+class _TransactionScreenState extends State<TransactionScreen> {
   var user;
   bool? _checkValue;
-  Transaction? db;
+  TransactionProvider? db;
   User? dbUser;
   List transactionList = [];
   List userList = [];
@@ -29,95 +29,65 @@ class _TransactionScreenState extends State<TransactionScreen>
   double customerBalance = 0;
   double totalGram = 0;
   List alllist = [];
-  bool checkValue = false;
-  bool isLoading = true;
 
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-        CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
-
-    checkLogin();
-    checkUser();
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  initialise() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    db = Transaction();
+  initialise() {
+    db = TransactionProvider();
     dbUser = User();
     db!.initiliase();
 
     db!.read(user['id']).then((value) {
-      if (value != null) {
-        setState(() {
-          alllist = value;
-          transactionList = alllist[0];
-          isLoading = false;
-        });
-      }
       setState(() {
-        isLoading = false;
+        alllist = value!;
+        transactionList = alllist[0];
+        customerBalance = alllist[1];
+        totalGram = alllist[2];
       });
     });
   }
 
+  List userData = [];
   checkLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _checkValue = prefs.containsKey('user');
-
+    // print(_checkValue);
     if (_checkValue == true) {
       setState(() {
         user = jsonDecode(prefs.getString('user')!);
       });
-      await initialise();
-    } else {
-      setState(() {
-        isLoading = false;
+      Provider.of<User>(context, listen: false)
+          .readById(user["id"])
+          .then((val) {
+        setState(() {
+          userData = val!;
+        });
+        print("==========");
+        print(userData);
       });
+
+      await initialise();
     }
+
+    // user = prefs.containsKey('user');
   }
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    checkLogin();
+    checkUser();
+  }
+
+  bool checkValue = false;
   checkUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    checkValue = prefs.containsKey('user');
-  }
 
-  logout() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    preferences.getKeys();
-    for (String key in preferences.getKeys()) {
-      preferences.remove(key);
-    }
-    setState(() {});
-    Navigator.pop(context);
-    Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => HomeNavigation()),
-        (Route route) => false);
+    checkValue = prefs.containsKey('user');
+    // if (_checkValue == true) {
+    //   Navigator.of(context).pushNamed(TransactionScreen.routeName);
+    // } else {
+    //   Navigator.of(context).pushNamed(LoginScreen.routeName);
+    // }
   }
 
   @override
@@ -126,591 +96,258 @@ class _TransactionScreenState extends State<TransactionScreen>
       lastUpdate = transactionList[0]['date'].toDate();
     }
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      body: checkValue == true ? _buildLoggedInView() : _buildLoginPrompt(),
-    );
-  }
+    // if (userList != null) {
+    //   customerBalance = userList[0]['balance'].toDouble();
+    //   totalGram = userList[0]["totalGram"].toDouble();
+    // }
 
-  Widget _buildLoggedInView() {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: CustomScrollView(
-          slivers: [
-            // Modern App Bar
-            SliverAppBar(
-              expandedHeight: 120,
-              floating: false,
-              pinned: true,
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor.withOpacity(0.8),
-                      ],
-                    ),
-                  ),
-                ),
-                title: const Text(
-                  'Transactions',
-                  style: TextStyle(
+    // Clear shared preferance
+    logout() async {
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+      preferences.getKeys();
+      for (String key in preferences.getKeys()) {
+        preferences.remove(key);
+      }
+      setState(() {});
+      Navigator.pop(context);
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => HomeNavigation()),
+          (Route route) => false);
+      // Navigator.pushReplacement(context,
+      //     new MaterialPageRoute(builder: (context) => new HomeNavigation()));
+
+      // Navigate Page
+      // Navigator.of(context).pushNamed(HomeScreen.routeName);
+    }
+
+    return checkValue == true
+        ? Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              elevation: 2,
+              backgroundColor: Theme.of(context).primaryColor,
+              centerTitle: true,
+              title: Text(
+                "TRANSACTIONS",
+                style: TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                  ),
-                ),
-                centerTitle: true,
+                    fontSize: 12,
+                    fontFamily: 'latto',
+                    fontWeight: FontWeight.bold),
               ),
-              // leading: IconButton(
-              //   icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-              //   onPressed: () => Navigator.pop(context),
-              // ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.more_vert, color: Colors.white),
-                  onPressed: () => _showMoreOptions(),
-                ),
-              ],
+              iconTheme: IconThemeData(color: Colors.white),
             ),
-
-            // Balance Cards
-            // SliverToBoxAdapter(
-            //   child: Transform.translate(
-            //     offset: const Offset(0, -30),
-            //     child: _buildBalanceCards(),
-            //   ),
-            // ),
-
-            // Transaction Section Header
-            // SliverToBoxAdapter(
-            //   child: Padding(
-            //     padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            //     child: Row(
-            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //       children: [
-            //         const Text(
-            //           'Recent Transactions',
-            //           style: TextStyle(
-            //             fontSize: 22,
-            //             fontWeight: FontWeight.bold,
-            //             color: Colors.black87,
-            //           ),
-            //         ),
-            //         TextButton(
-            //           onPressed: () {
-            //             // Navigate to all transactions
-            //           },
-            //           child: Text(
-            //             'View All',
-            //             style: TextStyle(
-            //               color: Theme.of(context).primaryColor,
-            //               fontWeight: FontWeight.w600,
-            //             ),
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ),
-            // ),
-
-            // Transaction List
-            isLoading
-                ? SliverToBoxAdapter(child: _buildLoadingState())
-                : SliverToBoxAdapter(
-                    child: Container(
-                      // margin: const EdgeInsets.symmetric(horizontal: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
+            body: SafeArea(
+              child: Container(
+                height: MediaQuery.of(context).size.height,
+                // padding: EdgeInsets.only(top: 35),
+                color: Colors.white,
+                child: Column(
+                  children: [
+                    titleCard(),
+                    Container(
+                      padding: EdgeInsets.only(left: 10, top: 10),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Transaction List",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          )
                         ],
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: TransactionList(),
-                      ),
                     ),
-                  ),
+                    Expanded(child: TransactionList()),
+                  ],
+                ),
+              ),
+            ),
+          )
+        : Scaffold(
+            appBar: AppBar(
+              elevation: 2,
+              backgroundColor: Theme.of(context).primaryColor,
+              centerTitle: true,
+              title: Text(
+                "TRANSACTIONS",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontFamily: 'latto',
+                    fontWeight: FontWeight.bold),
+              ),
+              iconTheme: IconThemeData(color: Colors.white),
+            ),
+            body: Container(
+              height: MediaQuery.of(context).size.height * .7,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                      image:
+                          AssetImage("assets/images/Mobile login-amico.png")),
+                  Text("Your Not Log in",
+                      style: TextStyle(
+                          fontSize: 18, color: Color.fromARGB(255, 0, 0, 0))),
+                  SizedBox(height: 18),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ProfileScreen()));
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Goto SignIn",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Color.fromARGB(255, 0, 0, 0))),
+                        Icon(
+                          Icons.arrow_forward,
+                          size: 18,
+                        )
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
 
-            // Bottom padding
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
+    // Center(
+    //     child: Column(
+    //       mainAxisAlignment: MainAxisAlignment.center,
+    //       children: [
+    //         Text('Welcome! Please log in.'),
+    //         SizedBox(height: 20),
+    //         ElevatedButton(
+    //           onPressed: () {
+    //             Navigator.push(
+    //               context,
+    //               MaterialPageRoute(builder: (context) => LoginScreen()),
+    //             );
+    //           },
+    //           child: Text('Go to Login Page'),
+    //         ),
+    //       ],
+    //     ),
+    //   );
+  }
+
+  Widget titleCard() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * .22,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/bg2.png"),
+            fit: BoxFit.cover,
+          ),
+          borderRadius: BorderRadius.circular(15.0), // Border radius
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1), // Shadow color
+              spreadRadius: 2, // Spread radius
+              blurRadius: 5, // Blur radius
+              offset: Offset(3, 3), // Offset of the shadow
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildBalanceCards() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          if (user != null && user["schemeType"] == "Gold")
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.amber.shade400,
-                    Colors.amber.shade600,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.amber.withOpacity(0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.diamond,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Gold in Locker',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${totalGram.toStringAsFixed(4)} gms',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Cash Balance Card
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    FontAwesomeIcons.wallet,
-                    color: Theme.of(context).primaryColor,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Image(
+                  color: Color.fromARGB(255, 205, 168, 65),
+                  width: 40,
+                  image: AssetImage("assets/images/gold-ingot.png")),
+              SizedBox(height: 10),
+              Expanded(
+                child: Container(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Cash Savings',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                      Center(
+                        child: Text(
+                          "Gold In locker",
+                          style: TextStyle(
+                              fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      Center(
+                        child: Text(
+                          "${userData[0]["totalGram"].toStringAsFixed(3)} gms",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Center(
+                        child: Text(
+                          "Cash As Saving",
+                          style: TextStyle(
+                              fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             FontAwesomeIcons.indianRupeeSign,
                             size: 20,
-                            color: Colors.black87,
                           ),
-                          const SizedBox(width: 4),
                           Text(
-                            customerBalance.toStringAsFixed(2),
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            "${userData[0]["balance"].toStringAsFixed(2)}",
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ],
-                      ),
+                      )
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          // Last Updated Info
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.access_time,
-                  size: 16,
-                  color: Colors.grey.shade600,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Last updated ${DateFormat.yMMMd().format(lastUpdate)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Last updated at",
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontFamily: 'latto',
+                        color: Colors.grey[400]),
                   ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoginPrompt() {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Theme.of(context).primaryColor,
-        title: const Text(
-          "Transactions",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: SingleChildScrollView(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Illustration
-                    Container(
-                      width: 200,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.05),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.account_circle_outlined,
-                          size: 100,
-                          color:
-                              Theme.of(context).primaryColor.withOpacity(0.6),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    // Title
-                    const Text(
-                      'Login Required',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Subtitle
-                    Text(
-                      'Please sign in to view your transaction history and account details',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade600,
-                        height: 1.5,
-                      ),
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    // Sign In Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ProfileScreen()),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text(
-                              'Sign In Now',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward, size: 20),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Features Preview
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.grey.shade200,
-                          width: 1,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'What you\'ll get after signing in:',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.history,
-                                size: 20,
-                                color: Theme.of(context).primaryColor,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Complete transaction history',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.account_balance_wallet,
-                                size: 20,
-                                color: Theme.of(context).primaryColor,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Real-time balance updates',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.security,
-                                size: 20,
-                                color: Theme.of(context).primaryColor,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Secure account management',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  SizedBox(width: 5),
+                  Text(
+                    DateFormat.yMMMd()
+                        // .add_jm()
+                        .format(lastUpdate)
+                        .toString(),
+                    style: TextStyle(
+                        fontFamily: 'latto', fontSize: 11, color: Colors.grey),
+                  )
+                ],
               ),
-            ),
+            ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Container(
-      height: 300,
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              color: Theme.of(context).primaryColor,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Loading transactions...',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showMoreOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ListTile(
-              leading:
-                  Icon(Icons.refresh, color: Theme.of(context).primaryColor),
-              title: const Text('Refresh'),
-              onTap: () {
-                Navigator.pop(context);
-                if (checkValue) initialise();
-              },
-            ),
-            // ListTile(
-            //   leading:
-            //       Icon(Icons.download, color: Theme.of(context).primaryColor),
-            //   title: const Text('Export Transactions'),
-            //   onTap: () {
-            //     Navigator.pop(context);
-            //     // Implement export functionality
-            //   },
-            // ),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout'),
-              onTap: () {
-                Navigator.pop(context);
-                logout();
-              },
-            ),
-            const SizedBox(height: 20),
-          ],
         ),
       ),
     );

@@ -21,7 +21,7 @@ class DashBoardScreen extends StatefulWidget {
 class _DashBoardScreenState extends State<DashBoardScreen> {
   final List<String> items = List.generate(10, (index) => 'Item $index');
   List image = [];
-  var categoryDb = Category();
+  var categoryDb = CategoryProvider();
   var categoryList = [];
   Future loadCategoary() async {
     categoryDb.initiliase();

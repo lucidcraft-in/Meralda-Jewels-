@@ -64,7 +64,9 @@ class _Homescreen1State extends State<Homescreen1> {
   }
 
   getCategory() {
-    Provider.of<Category>(context, listen: false).getCategory().then((onValue) {
+    Provider.of<CategoryProvider>(context, listen: false)
+        .getCategory()
+        .then((onValue) {
       setState(() {
         categoryList = onValue;
       });

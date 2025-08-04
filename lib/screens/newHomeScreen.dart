@@ -146,7 +146,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void getCategory() {
-    Provider.of<Category>(context, listen: false).getCategory().then((onValue) {
+    Provider.of<CategoryProvider>(context, listen: false)
+        .getCategory()
+        .then((onValue) {
       setState(() {
         // final List<Map<String, dynamic>> cleanedList =
         //     onValue.map<Map<String, dynamic>>((item) {

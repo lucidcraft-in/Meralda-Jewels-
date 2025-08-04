@@ -64,7 +64,7 @@ class TransactionModel {
   // }
 }
 
-class Transaction with ChangeNotifier {
+class TransactionProvider with ChangeNotifier {
   late FirebaseFirestore firestore;
   initiliase() {
     firestore = FirebaseFirestore.instance;

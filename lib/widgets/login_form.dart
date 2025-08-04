@@ -22,23 +22,6 @@ class _LoginFormState extends State<LoginForm> {
 
   var index;
 
-  initialise() {
-    db = User();
-    db?.initiliase();
-    db?.read().then((value) {
-      setState(() {
-        userList = value!;
-      });
-      print(userList);
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initialise();
-  }
-
   TextEditingController _customerIdController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
 

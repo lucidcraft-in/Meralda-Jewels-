@@ -626,7 +626,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         staffId: "",
         merchentTransactionId: response["data"]["merchantTransactionId"],
         transactionMode: "online");
-    var db = Transaction();
+    var db = TransactionProvider();
     db.initiliase();
     db.create(data).then((value) {
       final snackBar =

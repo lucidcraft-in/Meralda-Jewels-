@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {
   final String? id;
@@ -11,7 +16,7 @@ class UserModel {
   final double? balance;
   final String? token;
   final double? totalGram;
-  final int? branch;
+
   final DateTime? dateofBirth;
   final String? nominee;
   final String? nomineePhone;
@@ -21,57 +26,59 @@ class UserModel {
   final String? pinCode;
 
   UserModel({
-    @required this.id,
-    @required this.name,
-    @required this.custId,
-    @required this.phoneNo,
-    @required this.address,
-    @required this.place,
-    @required this.balance,
-    @required this.token,
-    @required this.totalGram,
-    @required this.branch,
-    @required this.dateofBirth,
-    @required this.nominee,
-    @required this.nomineePhone,
+    this.id,
+    this.name,
+    this.custId,
+    this.phoneNo,
+    this.address,
+    this.place,
+    this.balance,
+    this.token,
+    this.totalGram,
+    this.dateofBirth,
+    this.nominee,
+    this.nomineePhone,
     this.nomineeRelation,
-    @required this.adharCard,
+    this.adharCard,
     this.panCard,
     this.pinCode,
   });
 
-  UserModel.fromData(Map<String, dynamic> data)
-      : id = data['id'],
-        name = data['name'],
-        custId = data['custId'],
-        phoneNo = data['phonne_no'],
-        address = data['address'],
-        place = data['place'],
-        balance = data['balance'],
-        token = data['token'],
-        totalGram = data['total_gram'],
-        branch = data['branch'],
-        dateofBirth = data['dateofBirth'],
-        nominee = data['nominee'],
-        nomineePhone = data['nomineePhone'],
-        nomineeRelation = data['nomineeRelation'],
-        adharCard = data['adharCard'],
-        panCard = data['panCard'],
-        pinCode = data['pinCode'];
+  factory UserModel.fromJson(Map<String, dynamic> data) {
+    return UserModel(
+      id: data['id'],
+      name: data['name'],
+      custId: data['custId'],
+      phoneNo: data['phoneNo'],
+      address: data['address'],
+      place: data['place'],
+      balance: (data['balance'] as num?)?.toDouble(),
+      token: data['token'],
+      totalGram: (data['totalGram'] as num?)?.toDouble(),
+      dateofBirth: data['dateofBirth'] != null
+          ? DateTime.parse(data['dateofBirth'])
+          : null,
+      nominee: data['nominee'],
+      nomineePhone: data['nomineePhone'],
+      nomineeRelation: data['nomineeRelation'],
+      adharCard: data['adharCard'],
+      panCard: data['panCard'],
+      pinCode: data['pinCode'],
+    );
+  }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
       'custId': custId,
-      'phone_no': phoneNo,
+      'phoneNo': phoneNo,
       'address': address,
       'place': place,
       'balance': balance,
       'token': token,
       'totalGram': totalGram,
-      'branch': branch,
-      'dateofBirth': dateofBirth,
+      'dateofBirth': dateofBirth?.toIso8601String(),
       'nominee': nominee,
       'nomineePhone': nomineePhone,
       'nomineeRelation': nomineeRelation,
@@ -80,6 +87,12 @@ class UserModel {
       'pinCode': pinCode,
     };
   }
+}
+
+DateTime? _toDate(dynamic value) {
+  if (value == null) return null;
+  if (value is Timestamp) return value.toDate();
+  return value as DateTime?;
 }
 
 class User with ChangeNotifier {
@@ -291,5 +304,92 @@ class User with ChangeNotifier {
     } catch (e) {
       return e;
     }
+  }
+
+  Future loginUser(String custId, String phoneNo) async {
+    print("----------");
+    List userlist = [];
+    QuerySnapshot querySnapshot;
+
+    try {
+      querySnapshot = await collectionReference
+          .where("custId", isEqualTo: custId)
+          .where("phone_no", isEqualTo: phoneNo)
+          .get();
+      print(querySnapshot.docs.length);
+      if (querySnapshot.docs.isNotEmpty) {
+        for (var doc in querySnapshot.docs.toList()) {
+          Map a = {
+            "id": doc.id,
+            "name": doc['name'],
+            "custId": doc["custId"],
+            "phoneNo": doc["phone_no"],
+            "address": doc["address"],
+            // "scheme": doc["scheme"],
+            "place": doc["place"],
+            "balance": doc['balance'],
+            "totalGram": doc["total_gram"],
+            "branch": doc['branch'],
+            "schemeType": doc["schemeType"],
+            // "dateofBirth": doc['dateofBirth'].toDate(),
+            "nominee": doc['nominee'],
+            "nomineePhone": doc['nomineePhone'],
+            "nomineeRelation": doc['nomineeRelation'],
+            "adharCard": doc['adharCard'],
+            "panCard": doc['panCard'],
+            "pinCode": doc['pinCode'],
+          };
+          userlist.add(a);
+        }
+        print(userlist);
+        return userlist;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    // try {
+    //   QuerySnapshot querySnapshot =
+    //       await collectionReference.where("custId", isEqualTo: custId).get();
+
+    //   if (querySnapshot.docs.isNotEmpty) {
+    //     final doc = querySnapshot.docs.first;
+    //     final userData = doc.data() as Map<String, dynamic>;
+
+    //     // Optionally store the user data locally if needed
+    //     final user = UserModel.fromJson({
+    //       ...userData,
+    //       'id': doc.id,
+    //     });
+
+    //     _user = [user]; // store single user
+    //     saveUserLocally(user);
+    //     notifyListeners();
+
+    //     return {
+    //       'success': true,
+    //       'user': user,
+    //     };
+    //   } else {
+    //     return {
+    //       'success': false,
+    //       'message': 'No user found with this ID',
+    //     };
+    //   }
+    // } catch (e) {
+    //   print(e);
+    //   return {
+    //     'success': false,
+    //     'message': 'Error occurred: $e',
+    //   };
+    // }
+  }
+
+  Future<void> saveUserLocally(UserModel user) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = jsonEncode(user.toJson());
+    await prefs.setString('user_data', userJson);
   }
 }
