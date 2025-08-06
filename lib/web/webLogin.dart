@@ -94,8 +94,10 @@ class _WebLoginpageState extends State<WebLoginpage> {
                             _buildForgotPassword(),
                             TextButton(
                               onPressed: () {
+                                Navigator.pop(context);
                                 showDialog(
                                   context: context,
+                                  barrierDismissible: false,
                                   builder: (context) =>
                                       UserRegistrationDialog(),
                                 );
@@ -296,41 +298,55 @@ class _WebLoginpageState extends State<WebLoginpage> {
 
     final userProvider = Provider.of<User>(context, listen: false);
     userProvider.loginUser(custId, _passwordController.text).then((val) {
-      print("-------- ------- -----------");
-      print(val);
       if (val.isNotEmpty) {
-        sharedPreferences.setString("user", json.encode(val[0]));
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => WebHomeScreen(),
-          ),
-          (Route<dynamic> route) => false,
-        );
+        print(val[0]);
+        if (val[0]["staffId"] == "") {
+          Navigator.pop(context); // Close any loading dialog if present
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              title: Text("Account Verification"),
+              content: Text(
+                  "Your account is under verification. Please try again later."),
+              actions: [
+                TextButton(
+                  child: Text("OK"),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          );
+        } else {
+          sharedPreferences.setString("user", json.encode(val[0]));
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => WebHomeScreen(),
+            ),
+            (Route<dynamic> route) => false,
+          );
+        }
       } else {
-        Navigator.pop(context);
+        Navigator.pop(context); // Close any loading dialog if present
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-            "Invalied user Id or password..",
-            style: TextStyle(color: Colors.white),
-          )),
+            content: Text(
+              "Invalid user ID or password",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
         );
       }
+    }).catchError((error) {
+      Navigator.pop(context); // Close any loading dialog if present
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "An error occurred during login",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
     });
-
-    // if (result['success']) {
-    //   final user = result['user'] as UserModel;
-    //   // Navigate to Home or Dashboard
-    //   Navigator.pop(context);
-    // } else {
-    //   Navigator.pop(context);
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(
-    //         content: Text(
-    //       result['message'],
-    //       style: TextStyle(color: Colors.white),
-    //     )),
-    //   );
-    // }
   }
 }

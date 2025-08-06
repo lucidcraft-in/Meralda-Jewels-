@@ -9,6 +9,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:meralda_gold_user/common/colo_extension.dart';
 import 'package:meralda_gold_user/providers/user.dart';
 import 'package:meralda_gold_user/screens/transaction_screen.dart';
+import 'package:meralda_gold_user/web/webPayScreen.dart';
 import 'package:meralda_gold_user/web/webTransaction.dart';
 import 'package:meralda_gold_user/web/widgets/columnUi.dart';
 import 'package:provider/provider.dart';
@@ -16,7 +17,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 
 import '../providers/product.dart';
+import '../screens/profile.dart';
 import 'webLogin.dart';
+import 'webProfile.dart';
 
 class WebHomeScreen extends StatefulWidget {
   @override
@@ -396,7 +399,16 @@ class _WebHomeScreenState extends State<WebHomeScreen>
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                _showLoginDialog(context);
+                if (_userName != "") {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Webprofile(),
+                    ),
+                  );
+                } else {
+                  _showLoginDialog(context);
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: TColo.primaryColor1,
@@ -505,7 +517,16 @@ class _WebHomeScreenState extends State<WebHomeScreen>
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                _showLoginDialog(context);
+                if (_userName != "") {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Webprofile(),
+                    ),
+                  );
+                } else {
+                  _showLoginDialog(context);
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: TColo.primaryColor1,
@@ -693,7 +714,18 @@ class _WebHomeScreenState extends State<WebHomeScreen>
                 height: 100,
                 child: GestureDetector(
                   onTap: () {
-                    _showLoginDialog(context);
+                    if (_userName != "") {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Webprofile(),
+                        ),
+                      );
+                    } else {
+                      _showLoginDialog(context);
+                    }
+
+                    //
                   },
                   child: Icon(
                     FontAwesomeIcons.userTie,
@@ -1580,6 +1612,22 @@ class _WebHomeScreenState extends State<WebHomeScreen>
             // ScaffoldMessenger.of(context).showSnackBar(
             //   SnackBar(content: Text("Customer ID is required")),
             // );
+          }
+        } else {
+          if (_userName != "") {
+            print(user["id"]);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => WebPayAmountScreen(
+                  custName: _userName,
+                  userid: user["id"],
+                  user: user,
+                ),
+              ),
+            );
+          } else {
+            _showLoginDialog(context);
           }
         }
       },

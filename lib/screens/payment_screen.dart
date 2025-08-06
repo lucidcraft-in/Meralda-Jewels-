@@ -1,683 +1,687 @@
-import 'dart:async';
-import 'dart:convert';
+// import 'dart:async';
+// import 'dart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
-import '../Providers/transaction.dart';
-import '../functions/SHA256.dart';
-import '../functions/base64.dart';
-import '../providers/phonePe_payment.dart';
-import '../providers/staff.dart';
-import '../providers/user.dart';
-import 'home_screen.dart';
-import 'login_screen.dart';
-import 'paymentResponseScreen.dart';
-
+// import 'package:flutter/material.dart';
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+// import 'package:provider/provider.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:http/http.dart' as http;
 // import 'package:url_launcher/url_launcher.dart';
+// import '../Providers/transaction.dart';
+// import '../functions/SHA256.dart';
+// import '../functions/base64.dart';
+// import '../providers/phonePe_payment.dart';
+// import '../providers/staff.dart';
+// import '../providers/user.dart';
+// import 'home_screen.dart';
+// import 'login_screen.dart';
+// import 'paymentResponseScreen.dart';
 
-class PaymentScreen extends StatefulWidget {
-  static const routeName = '/payment-screen';
-  const PaymentScreen({Key? key}) : super(key: key);
+// // import 'package:url_launcher/url_launcher.dart';
 
-  @override
-  State<PaymentScreen> createState() => _PaymentScreenState();
-}
+// class PaymentScreen extends StatefulWidget {
+//   static const routeName = '/payment-screen';
+//   const PaymentScreen({Key? key}) : super(key: key);
 
-class _PaymentScreenState extends State<PaymentScreen> {
-  TextEditingController amountController = TextEditingController();
-  TextEditingController noteController = TextEditingController();
+//   @override
+//   State<PaymentScreen> createState() => _PaymentScreenState();
+// }
 
-  double paidAmount = 0;
-  String description = "";
-  bool webview = false;
-  var userData;
-  String custId = "";
-  String userName = "";
-  String mobileNo = "";
-  String status = "";
-  int userBranch = 0;
-  String transactionId = "";
-  var paymentDetails;
-  Future checkUser() async {
-    SharedPreferences pref = await SharedPreferences.getInstance();
-    var user = pref.getString("user");
-    if (user != null) {
-      var decodedJson = json.decode(user);
-      userData = decodedJson;
+// class _PaymentScreenState extends State<PaymentScreen> {
+//   TextEditingController amountController = TextEditingController();
+//   TextEditingController noteController = TextEditingController();
 
-      setState(() {
-        custId = userData["custId"];
-        userName = userData["name"];
-        mobileNo = userData["phoneNo"];
-        userBranch = userData["branch"];
-      });
+//   double paidAmount = 0;
+//   String description = "";
+//   bool webview = false;
+//   var userData;
+//   String custId = "";
+//   String userName = "";
+//   String mobileNo = "";
+//   String status = "";
+//   int userBranch = 0;
+//   String transactionId = "";
+//   var paymentDetails;
+//   Future checkUser() async {
+//     SharedPreferences pref = await SharedPreferences.getInstance();
+//     var user = pref.getString("user");
+//     if (user != null) {
+//       var decodedJson = json.decode(user);
+//       userData = decodedJson;
 
-      Provider.of<User>(context, listen: false)
-          .getUserById(custId)
-          .then((value) {
-        // print("========");
-        // print(value);
-        if (value == true) {
-          clearData();
-        }
-      });
-      getAdminStaff(userBranch);
-    } else {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => LoginScreen()));
-    }
-  }
+//       setState(() {
+//         custId = userData["custId"];
+//         userName = userData["name"];
+//         mobileNo = userData["phoneNo"];
+//         userBranch = userData["branch"];
+//       });
 
-  clearData() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    preferences.getKeys();
-    for (String key in preferences.getKeys()) {
-      preferences.remove(key);
-    }
-    Navigator.pushReplacement(context,
-        new MaterialPageRoute(builder: (context) => new LoginScreen()));
-  }
+//       Provider.of<User>(context, listen: false)
+//           .getUserById(custId)
+//           .then((value) {
+//         // print("========");
+//         // print(value);
+//         if (value == true) {
+//           clearData();
+//         }
+//       });
+//       getAdminStaff(userBranch);
+//     } else {
+//       Navigator.pushReplacement(
+//           context, MaterialPageRoute(builder: (context) => LoginScreen()));
+//     }
+//   }
 
-  var inserUrl = "https://sarathihelp.com/phonepay/api/insert_payment";
-  var phonePeUrl = "https://api.phonepe.com/apis/hermes/pg/v1/pay";
-  var rediarectUrl = "https://sarathihelp.com/phonepay/api/paymentResponse";
-  var checkServerAPI = "https://sarathihelp.com/phonepay/api/paymentStatus";
-  String saltKey = "4a6c9e0c-49d4-40e8-8300-47409a49fd6b";
-  String _merchantId = "MALABARIJEWELONLINE";
-  bool pressPay = false;
+//   clearData() async {
+//     SharedPreferences preferences = await SharedPreferences.getInstance();
+//     preferences.getKeys();
+//     for (String key in preferences.getKeys()) {
+//       preferences.remove(key);
+//     }
+//     Navigator.pushReplacement(context,
+//         new MaterialPageRoute(builder: (context) => new LoginScreen()));
+//   }
 
-  tokenGenarate(String amt, String note) async {
-    getAdminStaff(userBranch);
-    var amount = double.parse(amt);
+//   var inserUrl = "https://sarathihelp.com/phonepay/api/insert_payment";
+//   var phonePeUrl = "https://api.phonepe.com/apis/hermes/pg/v1/pay";
+//   var rediarectUrl = "https://sarathihelp.com/phonepay/api/paymentResponse";
+//   var checkServerAPI = "https://sarathihelp.com/phonepay/api/paymentStatus";
+//   String saltKey = "4a6c9e0c-49d4-40e8-8300-47409a49fd6b";
+//   String _merchantId = "MALABARIJEWELONLINE";
+//   bool pressPay = false;
 
-    var data = phonePe_PaymentModel(
-        merchantId: _merchantId,
-        custId: custId,
-        custName: userName,
-        amount: amount,
-        note: note,
-        custPhone: double.parse(mobileNo),
-        currency: "INR",
-        status: "Initaiated");
+//   tokenGenarate(String amt, String note) async {
+//     getAdminStaff(userBranch);
+//     var amount = double.parse(amt);
 
-    firebaseInsert(data);
-  }
+//     var data = phonePe_PaymentModel(
+//         merchantId: _merchantId,
+//         custId: custId,
+//         custName: userName,
+//         amount: amount,
+//         note: note,
+//         custPhone: double.parse(mobileNo),
+//         currency: "INR",
+//         status: "Initaiated");
 
-  // ------ insert transtaction data in firebase ---------
-  firebaseInsert(var data) {
-    var db = phonePe_Payment();
-    db.initiliase();
-    db.addTransaction(data).then((value) {
-      // print("----payment data ----");
-      setState(() {
-        transactionId = value.toUpperCase();
-      });
-      // print("----- Firebase insert ----------");
-      // print(transactionId);
-      if (transactionId != "") {
-        insertAPI(data.amount, data.note, transactionId);
-      } else {
-        // print("----- Firebase insert error----------");
-      }
-    });
-  }
+//     firebaseInsert(data);
+//   }
 
-// ------ insert transtaction data in Backend ---------
-  insertAPI(double amt, String note, String transId) async {
-    var rspncData;
-    // phonePeFn(amt, transId);
-    // print(inserUrl);
-    final response = await http.post(
-      Uri.parse(inserUrl),
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-type': 'application/json',
-        '_token': "SnPm0X8XsudS0klJjW31B0RkI2w5pFfxOZog8kbt"
-      },
-      body: jsonEncode({
-        "customer_id": custId,
-        "amount": amt,
-        "customer_name": userName,
-        "merchantId": _merchantId,
-        "transaction_id": transId,
-        "message": note
-      }),
-    );
-    // print("---- Backend Insert  -----------");
-    // print(rspncData);
-    setState(() {
-      rspncData = jsonDecode(response.body);
-    });
-    // print("---- Backend Insert  -----------");
+//   // ------ insert transtaction data in firebase ---------
+//   firebaseInsert(var data) {
+//     var db = phonePe_Payment();
+//     db.initiliase();
+//     db.addTransaction(data).then((value) {
+//       // print("----payment data ----");
+//       setState(() {
+//         transactionId = value.toUpperCase();
+//       });
+//       // print("----- Firebase insert ----------");
+//       // print(transactionId);
+//       if (transactionId != "") {
+//         insertAPI(data.amount, data.note, transactionId);
+//       } else {
+//         // print("----- Firebase insert error----------");
+//       }
+//     });
+//   }
 
-    if (rspncData["statusCode"] == 200) {
-      phonePeFn(amt, transId);
-    } else {
-      // print("---- Backend Insert Error -----------");
-    }
-  }
+// // ------ insert transtaction data in Backend ---------
+//   insertAPI(double amt, String note, String transId) async {
+//     var rspncData;
+//     // phonePeFn(amt, transId);
+//     // print(inserUrl);
+//     final response = await http.post(
+//       Uri.parse(inserUrl),
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Content-type': 'application/json',
+//         '_token': "SnPm0X8XsudS0klJjW31B0RkI2w5pFfxOZog8kbt"
+//       },
+//       body: jsonEncode({
+//         "customer_id": custId,
+//         "amount": amt,
+//         "customer_name": userName,
+//         "merchantId": _merchantId,
+//         "transaction_id": transId,
+//         "message": note
+//       }),
+//     );
+//     // print("---- Backend Insert  -----------");
+//     // print(rspncData);
+//     setState(() {
+//       rspncData = jsonDecode(response.body);
+//     });
+//     // print("---- Backend Insert  -----------");
 
-  // --------- PhonePe API -------------
-  phonePeFn(double amount, String transactionId) async {
-    String base64data = "";
-    String input;
-    String hashedOutput;
-    String hash = "";
-    var data1;
-    var url;
-    // print("--------- phone pe -------------");
+//     if (rspncData["statusCode"] == 200) {
+//       phonePeFn(amt, transId);
+//     } else {
+//       // print("---- Backend Insert Error -----------");
+//     }
+//   }
 
-    var PhonePedata = {
-      "merchantId": _merchantId,
-      "merchantTransactionId": transactionId,
-      "merchantUserId": custId,
-      "amount": amount * 100,
-      "redirectUrl": rediarectUrl,
-      "redirectMode": "POST",
-      "callbackUrl": rediarectUrl,
-      "mobileNumber": mobileNo,
-      "paymentInstrument": {"type": "PAY_PAGE"}
-    };
-    setState(() {});
-    // print(PhonePedata);
-    setState(() {
-      base64data = encodeJsonToBase64(PhonePedata);
-      input = base64data + "/pg/v1/pay" + saltKey;
-      hashedOutput = convertToSHA256(input);
-      hash = hashedOutput + "###" + "1";
-    });
+//   // --------- PhonePe API -------------
+//   phonePeFn(double amount, String transactionId) async {
+//     String base64data = "";
+//     String input;
+//     String hashedOutput;
+//     String hash = "";
+//     var data1;
+//     var url;
+//     // print("--------- phone pe -------------");
 
-    final response = await http.post(
-      Uri.parse(phonePeUrl),
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-type': 'application/json',
-        'X-VERIFY': hash
-      },
-      body: jsonEncode({"request": base64data}),
-    );
+//     var PhonePedata = {
+//       "merchantId": _merchantId,
+//       "merchantTransactionId": transactionId,
+//       "merchantUserId": custId,
+//       "amount": amount * 100,
+//       "redirectUrl": rediarectUrl,
+//       "redirectMode": "POST",
+//       "callbackUrl": rediarectUrl,
+//       "mobileNumber": mobileNo,
+//       "paymentInstrument": {"type": "PAY_PAGE"}
+//     };
+//     setState(() {});
+//     // print(PhonePedata);
+//     setState(() {
+//       base64data = encodeJsonToBase64(PhonePedata);
+//       input = base64data + "/pg/v1/pay" + saltKey;
+//       hashedOutput = convertToSHA256(input);
+//       hash = hashedOutput + "###" + "1";
+//     });
 
-    setState(() {
-      data1 = jsonDecode(response.body);
-    });
-    // print("-----------------------------------");
-    // print(data1);
-    setState(() {
-      url = data1["data"]["instrumentResponse"]["redirectInfo"]["url"];
-    });
-    // print(url);
+//     final response = await http.post(
+//       Uri.parse(phonePeUrl),
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Content-type': 'application/json',
+//         'X-VERIFY': hash
+//       },
+//       body: jsonEncode({"request": base64data}),
+//     );
 
-    _launchURL(
-      url,
-      data1["data"]["merchantTransactionId"],
-      data1["data"]["merchantId"],
-      amount * 100,
-    );
-  }
+//     setState(() {
+//       data1 = jsonDecode(response.body);
+//     });
+//     // print("-----------------------------------");
+//     // print(data1);
+//     setState(() {
+//       url = data1["data"]["instrumentResponse"]["redirectInfo"]["url"];
+//     });
+//     // print(url);
 
-  _launchURL(
-      var data, String transactionId, String merchantId, double amount) async {
-    final Uri url = Uri.parse(data);
+//     _launchURL(
+//       url,
+//       data1["data"]["merchantTransactionId"],
+//       data1["data"]["merchantId"],
+//       amount * 100,
+//     );
+//   }
 
-    launchUrl(url, mode: LaunchMode.inAppWebView).then((value) {
-      // launch(url.toString()).then((value) {
+//   _launchURL(
+//       var data, String transactionId, String merchantId, double amount) async {
+//     final Uri url = Uri.parse(data);
 
-      setState(() {
-        webview = value;
-        _isLoading = true;
-      });
+//     launchUrl(url, mode: LaunchMode.inAppWebView).then((value) {
+//       // launch(url.toString()).then((value) {
 
-      if (webview == true) {
-        _startTimer(transactionId, merchantId, amount);
-      }
-    });
-  }
+//       setState(() {
+//         webview = value;
+//         _isLoading = true;
+//       });
 
-  final _formKey = GlobalKey<FormState>();
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    checkUser();
-    setState(() {
-      noteController.text = "";
-      amountController.text = 0.toString();
-    });
-  }
+//       if (webview == true) {
+//         _startTimer(transactionId, merchantId, amount);
+//       }
+//     });
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("Payment"),
-          backgroundColor: Theme.of(context).primaryColor,
-          elevation: 0,
+//   final _formKey = GlobalKey<FormState>();
+//   @override
+//   void initState() {
+//     // TODO: implement initState
+//     super.initState();
+//     checkUser();
+//     setState(() {
+//       noteController.text = "";
+//       amountController.text = 0.toString();
+//     });
+//   }
 
-          // leading: Icon(Icons.arrow_back_ios),
-        ),
-        body: webview == false
-            ? Container(
-                width: double.infinity,
-                height: 800,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Column(
-                      children: [
-                        Text("Hello...",
-                            style: TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w500)),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Text(
-                          userData != null ? userName.toUpperCase() : "",
-                          style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        Container(
-                          height: 100,
-                          child: IntrinsicWidth(
-                            child: TextField(
-                              onChanged: (amountController) {
-                                setState(() {});
-                              },
-                              controller: amountController,
-                              keyboardType: TextInputType.number,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 30.0,
-                                  height: 2.0,
-                                  color: Colors.black),
-                              decoration: InputDecoration(
-                                prefixIcon: Icon(
-                                  FontAwesomeIcons.rupeeSign,
-                                  size: 25,
-                                  color: Colors.black,
-                                ),
-                                hintStyle: TextStyle(fontSize: 50),
-                                border: InputBorder.none,
-                                contentPadding:
-                                    EdgeInsets.symmetric(vertical: -12.0),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                            width: 250,
-                            height: 65,
-                            decoration: BoxDecoration(
-                                color: Colors.grey.shade300,
-                                borderRadius: BorderRadius.circular(20)),
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(7.0),
-                                child: IntrinsicWidth(
-                                  child: TextField(
-                                    controller: noteController,
-                                    onChanged: (noteController) {
-                                      setState(() {});
-                                    },
-                                    style: TextStyle(
-                                        fontSize: 16.0, color: Colors.black),
-                                    decoration: InputDecoration(
-                                        hintText: "add a note",
-                                        hintStyle: TextStyle(fontSize: 14),
-                                        border: InputBorder.none),
-                                  ),
-                                ),
-                              ),
-                            )),
-                      ],
-                    ),
-                    // GestureDetector(
-                    //   onTap: () {
-                    //     getAdminStaff(userBranch);
-                    //   },
-                    //   child: Container(
-                    //     width: 100,
-                    //     height: 40,
-                    //     color: Color.fromARGB(255, 56, 56, 56),
-                    //     child: Center(
-                    //       child: Text(
-                    //         "Get Admin",
-                    //         style: TextStyle(color: Colors.white),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                    Container(
-                      height: 50,
-                      width: 150,
-                      child: noteController.text.isEmpty
-                          ? Center(child: Text("Pay Now"))
-                          : pressPay == false
-                              ? Container(
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  decoration: BoxDecoration(
-                                      color: Theme.of(context).primaryColor,
-                                      borderRadius: BorderRadius.circular(12)),
-                                  child: OutlinedButton(
-                                      onPressed: () {
-                                        if (amountController.text.isNotEmpty) {
-                                          setState(() {
-                                            pressPay = true;
-                                          });
-                                          final snackBar = SnackBar(
-                                              content: Text(
-                                                  "Payment must be at least ₹1"));
-                                          if (double.parse(
-                                                  amountController.text) >
-                                              0) {
-                                            tokenGenarate(amountController.text,
-                                                noteController.text);
-                                          } else {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(snackBar);
-                                            setState(() {
-                                              pressPay = false;
-                                            });
-                                          }
-                                        } else {
-                                          final snackBar = SnackBar(
-                                              content: Text(
-                                                  "Payment must be at least ₹1"));
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(snackBar);
-                                        }
-                                      },
-                                      child: Text(
-                                        "Pay Now",
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600),
-                                      )))
-                              : Container(
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  decoration: BoxDecoration(
-                                      color: Theme.of(context).primaryColor,
-                                      borderRadius: BorderRadius.circular(12)),
-                                  child: Center(
-                                      child: Text(
-                                    "Wait...!",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600),
-                                  ))),
-                    )
-                  ],
-                ),
-              )
-            : Center(
-                child: _isLoading
-                    ? Container(
-                        color: Colors.white,
-                        width: double.infinity,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              height: MediaQuery.of(context).size.height * .3,
-                              width: MediaQuery.of(context).size.height * .3,
-                              child: Image(
-                                  image: AssetImage("assets/images/wait.jpg")),
-                            ),
-                            Text(
-                              "\" Don't Press Back \" ",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Text(
-                              "don't press back while payment initiating...!",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w500, fontSize: 12),
-                            )
-                          ],
-                        ),
-                      )
-                    : ResponseScreen(
-                        response: paymentDetails,
-                      )
-                // : success
-                //     ? ResponseScreen(
-                //         response: paymentDetails,
-                //         note: noteController.text,
-                //         userBranch: userBranch,
-                //         adminToken: adminToken,
-                //       )
-                //     : error
-                //         ? ResponseScreen(
-                //             response: paymentDetails,
-                //             note: noteController.text,
-                //             userBranch: userBranch,
-                //             adminToken: adminToken,
-                //           )
-                //         : Container()),
-                ));
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//         appBar: AppBar(
+//           title: Text("Payment"),
+//           backgroundColor: Theme.of(context).primaryColor,
+//           elevation: 0,
 
-  bool _isLoading = false;
-  int totalTimeElapsed = 0;
-  Timer? timer;
-  void _startTimer(String transactionId, String merchantId, double amount) {
-    timer = Timer.periodic(Duration(seconds: 3), (timer) {
-      // Counter to track the total elapsed time
+//           // leading: Icon(Icons.arrow_back_ios),
+//         ),
+//         body: webview == false
+//             ? Container(
+//                 width: double.infinity,
+//                 height: 800,
+//                 child: Column(
+//                   mainAxisAlignment: MainAxisAlignment.spaceAround,
+//                   children: [
+//                     Column(
+//                       children: [
+//                         Text("Hello...",
+//                             style: TextStyle(
+//                                 fontSize: 14, fontWeight: FontWeight.w500)),
+//                         SizedBox(
+//                           height: 10,
+//                         ),
+//                         Text(
+//                           userData != null ? userName.toUpperCase() : "",
+//                           style: TextStyle(
+//                               fontSize: 15, fontWeight: FontWeight.w500),
+//                         ),
+//                       ],
+//                     ),
+//                     Column(
+//                       children: [
+//                         Container(
+//                           height: 100,
+//                           child: IntrinsicWidth(
+//                             child: TextField(
+//                               onChanged: (amountController) {
+//                                 setState(() {});
+//                               },
+//                               controller: amountController,
+//                               keyboardType: TextInputType.number,
+//                               style: TextStyle(
+//                                   fontWeight: FontWeight.bold,
+//                                   fontSize: 30.0,
+//                                   height: 2.0,
+//                                   color: Colors.black),
+//                               decoration: InputDecoration(
+//                                 prefixIcon: Icon(
+//                                   FontAwesomeIcons.rupeeSign,
+//                                   size: 25,
+//                                   color: Colors.black,
+//                                 ),
+//                                 hintStyle: TextStyle(fontSize: 50),
+//                                 border: InputBorder.none,
+//                                 contentPadding:
+//                                     EdgeInsets.symmetric(vertical: -12.0),
+//                               ),
+//                             ),
+//                           ),
+//                         ),
+//                         Container(
+//                             width: 250,
+//                             height: 65,
+//                             decoration: BoxDecoration(
+//                                 color: Colors.grey.shade300,
+//                                 borderRadius: BorderRadius.circular(20)),
+//                             child: Center(
+//                               child: Padding(
+//                                 padding: const EdgeInsets.all(7.0),
+//                                 child: IntrinsicWidth(
+//                                   child: TextField(
+//                                     controller: noteController,
+//                                     onChanged: (noteController) {
+//                                       setState(() {});
+//                                     },
+//                                     style: TextStyle(
+//                                         fontSize: 16.0, color: Colors.black),
+//                                     decoration: InputDecoration(
+//                                         hintText: "add a note",
+//                                         hintStyle: TextStyle(fontSize: 14),
+//                                         border: InputBorder.none),
+//                                   ),
+//                                 ),
+//                               ),
+//                             )),
+//                       ],
+//                     ),
+//                     // GestureDetector(
+//                     //   onTap: () {
+//                     //     getAdminStaff(userBranch);
+//                     //   },
+//                     //   child: Container(
+//                     //     width: 100,
+//                     //     height: 40,
+//                     //     color: Color.fromARGB(255, 56, 56, 56),
+//                     //     child: Center(
+//                     //       child: Text(
+//                     //         "Get Admin",
+//                     //         style: TextStyle(color: Colors.white),
+//                     //       ),
+//                     //     ),
+//                     //   ),
+//                     // ),
+//                     Container(
+//                       height: 50,
+//                       width: 150,
+//                       child: noteController.text.isEmpty
+//                           ? Center(child: Text("Pay Now"))
+//                           : pressPay == false
+//                               ? Container(
+//                                   width: double.infinity,
+//                                   height: double.infinity,
+//                                   decoration: BoxDecoration(
+//                                       color: Theme.of(context).primaryColor,
+//                                       borderRadius: BorderRadius.circular(12)),
+//                                   child: OutlinedButton(
+//                                       onPressed: () {
+//                                         if (amountController.text.isNotEmpty) {
+//                                           setState(() {
+//                                             pressPay = true;
+//                                           });
+//                                           final snackBar = SnackBar(
+//                                               content: Text(
+//                                                   "Payment must be at least ₹1"));
+//                                           if (double.parse(
+//                                                   amountController.text) >
+//                                               0) {
+//                                             tokenGenarate(amountController.text,
+//                                                 noteController.text);
+//                                           } else {
+//                                             ScaffoldMessenger.of(context)
+//                                                 .showSnackBar(snackBar);
+//                                             setState(() {
+//                                               pressPay = false;
+//                                             });
+//                                           }
+//                                         } else {
+//                                           final snackBar = SnackBar(
+//                                               content: Text(
+//                                                   "Payment must be at least ₹1"));
+//                                           ScaffoldMessenger.of(context)
+//                                               .showSnackBar(snackBar);
+//                                         }
+//                                       },
+//                                       child: Text(
+//                                         "Pay Now",
+//                                         style: TextStyle(
+//                                             color: Colors.white,
+//                                             fontSize: 16,
+//                                             fontWeight: FontWeight.w600),
+//                                       )))
+//                               : Container(
+//                                   width: double.infinity,
+//                                   height: double.infinity,
+//                                   decoration: BoxDecoration(
+//                                       color: Theme.of(context).primaryColor,
+//                                       borderRadius: BorderRadius.circular(12)),
+//                                   child: Center(
+//                                       child: Text(
+//                                     "Wait...!",
+//                                     style: TextStyle(
+//                                         color: Colors.white,
+//                                         fontSize: 16,
+//                                         fontWeight: FontWeight.w600),
+//                                   ))),
+//                     )
+//                   ],
+//                 ),
+//               )
+//             : Center(
+//                 child: _isLoading
+//                     ? Container(
+//                         color: Colors.white,
+//                         width: double.infinity,
+//                         child: Column(
+//                           mainAxisAlignment: MainAxisAlignment.center,
+//                           crossAxisAlignment: CrossAxisAlignment.center,
+//                           children: [
+//                             Container(
+//                               height: MediaQuery.of(context).size.height * .3,
+//                               width: MediaQuery.of(context).size.height * .3,
+//                               child: Image(
+//                                   image: AssetImage("assets/images/wait.jpg")),
+//                             ),
+//                             Text(
+//                               "\" Don't Press Back \" ",
+//                               style: TextStyle(
+//                                   fontWeight: FontWeight.bold, fontSize: 16),
+//                             ),
+//                             SizedBox(
+//                               height: 10,
+//                             ),
+//                             Text(
+//                               "don't press back while payment initiating...!",
+//                               style: TextStyle(
+//                                   fontWeight: FontWeight.w500, fontSize: 12),
+//                             )
+//                           ],
+//                         ),
+//                       )
+//                     : ResponseScreen(
+//                         response: paymentDetails,
+//                       )
+//                 // : success
+//                 //     ? ResponseScreen(
+//                 //         response: paymentDetails,
+//                 //         note: noteController.text,
+//                 //         userBranch: userBranch,
+//                 //         adminToken: adminToken,
+//                 //       )
+//                 //     : error
+//                 //         ? ResponseScreen(
+//                 //             response: paymentDetails,
+//                 //             note: noteController.text,
+//                 //             userBranch: userBranch,
+//                 //             adminToken: adminToken,
+//                 //           )
+//                 //         : Container()),
+//                 ));
+//   }
 
-      // Send API request every 3 seconds for 5 minutes (300 seconds)
+//   bool _isLoading = false;
+//   int totalTimeElapsed = 0;
+//   Timer? timer;
+//   void _startTimer(String transactionId, String merchantId, double amount) {
+//     timer = Timer.periodic(Duration(seconds: 3), (timer) {
+//       // Counter to track the total elapsed time
 
-      if (totalTimeElapsed < 300) {
-        // Call your API function here
-        statusApi(merchantId, transactionId);
-        // Update the total elapsed time
-        totalTimeElapsed += 3;
-        if (containApi == true) {
-          timer.cancel();
-        }
-      } else {
-        // Cancel the timer after 5 minutes
-        closeInAppWebView();
-        timer.cancel();
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    });
-  }
+//       // Send API request every 3 seconds for 5 minutes (300 seconds)
 
-  statusApi(String merchantId, String merchantTransactionId) async {
-    String input;
-    String hashedOutput;
-    String hash;
+//       if (totalTimeElapsed < 300) {
+//         // Call your API function here
+//         statusApi(merchantId, transactionId);
+//         // Update the total elapsed time
+//         totalTimeElapsed += 3;
+//         if (containApi == true) {
+//           timer.cancel();
+//         }
+//       } else {
+//         // Cancel the timer after 5 minutes
+//         closeInAppWebView();
+//         timer.cancel();
+//         setState(() {
+//           _isLoading = false;
+//         });
+//       }
+//     });
+//   }
 
-    input = "/pg/v1/status/${merchantId}/${merchantTransactionId}" + saltKey;
-    hashedOutput = convertToSHA256(input);
-    var url =
-        "https://api.phonepe.com/apis/hermes/pg/v1/status/${merchantId}/${merchantTransactionId}";
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-type': 'application/json',
-        'X-VERIFY': "${hashedOutput}###1",
-        "X-MERCHANT-ID": merchantId
-      },
-    );
-    // print("----------phonepe payment Status Response -------");
+//   statusApi(String merchantId, String merchantTransactionId) async {
+//     String input;
+//     String hashedOutput;
+//     String hash;
 
-    var data;
-    setState(() {
-      data = jsonDecode(response.body);
-      paymentDetails = data;
-      pressPay = false;
-    });
-    // print(data);
-    if (data["code"] != "PAYMENT_PENDING") {
-      checkTransctionApi(data["data"]["merchantTransactionId"],
-          data["data"]["merchantId"], data["data"]["amount"]);
+//     input = "/pg/v1/status/${merchantId}/${merchantTransactionId}" + saltKey;
+//     hashedOutput = convertToSHA256(input);
+//     var url =
+//         "https://api.phonepe.com/apis/hermes/pg/v1/status/${merchantId}/${merchantTransactionId}";
+//     final response = await http.get(
+//       Uri.parse(url),
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Content-type': 'application/json',
+//         'X-VERIFY': "${hashedOutput}###1",
+//         "X-MERCHANT-ID": merchantId
+//       },
+//     );
+//     // print("----------phonepe payment Status Response -------");
 
-      if (containApi == true) {
-//  ----- update firebase database work done in backend -----
+//     var data;
+//     setState(() {
+//       data = jsonDecode(response.body);
+//       paymentDetails = data;
+//       pressPay = false;
+//     });
+//     // print(data);
+//     if (data["code"] != "PAYMENT_PENDING") {
+//       checkTransctionApi(data["data"]["merchantTransactionId"],
+//           data["data"]["merchantId"], data["data"]["amount"]);
 
-        // updateFirebaseStatus(paymentDetails);
-        closeInAppWebView();
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
+//       if (containApi == true) {
+// //  ----- update firebase database work done in backend -----
 
-  bool containApi = false;
-  late String apiResult;
-  checkTransctionApi(
-      String merchantTransactionId, String merchantId, int amount) async {
-    // print("----------checkTransctionApi -------");
+//         // updateFirebaseStatus(paymentDetails);
+//         closeInAppWebView();
+//         setState(() {
+//           _isLoading = false;
+//         });
+//       }
+//     }
+//   }
 
-    final apiResponse = await http.post(
-      Uri.parse(checkServerAPI),
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-type': 'application/json',
-      },
-      body: jsonEncode({
-        "transactionId": merchantTransactionId,
-        "merchantId": merchantId,
-        "amount": amount / 100
-      }),
-    );
-    // print("---------- API Status Response -------");
-    var data = jsonDecode(apiResponse.body);
-    setState(() {
-      containApi = data["status"];
-    });
-  }
+//   bool containApi = false;
+//   late String apiResult;
+//   checkTransctionApi(
+//       String merchantTransactionId, String merchantId, int amount) async {
+//     // print("----------checkTransctionApi -------");
 
-  Staff? db;
-  List staffList = [];
-  List filterList = [];
-  String adminToken = "";
-  getAdminStaff(int brchId) async {
-    db = Staff();
-    db!.initiliase();
-    db!.read().then((value) => {
-          setState(() {
-            staffList = value!;
-          }),
-        });
+//     final apiResponse = await http.post(
+//       Uri.parse(checkServerAPI),
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Content-type': 'application/json',
+//       },
+//       body: jsonEncode({
+//         "transactionId": merchantTransactionId,
+//         "merchantId": merchantId,
+//         "amount": amount / 100
+//       }),
+//     );
+//     // print("---------- API Status Response -------");
+//     var data = jsonDecode(apiResponse.body);
+//     setState(() {
+//       containApi = data["status"];
+//     });
+//   }
 
-    filterList = staffList
-        .where((element) => (element['type'].toString().contains("1")))
-        .toList();
+//   Staff? db;
+//   List staffList = [];
+//   List filterList = [];
+//   String adminToken = "";
+//   getAdminStaff(int brchId) async {
+//     db = Staff();
+//     db!.initiliase();
+//     db!.read().then((value) => {
+//           setState(() {
+//             staffList = value!;
+//           }),
+//         });
 
-    setState(() {
-      adminToken = filterList[0]["token"];
-    });
-  }
+//     filterList = staffList
+//         .where((element) => (element['type'].toString().contains("1")))
+//         .toList();
 
-  //-------- Below code will work after payment error or success --------
+//     setState(() {
+//       adminToken = filterList[0]["token"];
+//     });
+//   }
 
-  updateFirebaseStatus(var response) {
-    Provider.of<phonePe_Payment>(context, listen: false)
-        .updatePaymentbyTransactionId(response["data"]["merchantTransactionId"],
-            response["code"], response)
-        .then((value) {
-      // print("------------- value ----------");
-      // print(value);
-    }).then((value) {
-      if (response["code"] == "PAYMENT_SUCCESS") {
-        // add Transaction if payment success
-        addTransaction(response);
-      } else {
-        // add Transaction if payment failed
-      }
-    });
-  }
+//   //-------- Below code will work after payment error or success --------
 
-  DateTime today = DateTime.now();
-  addTransaction(var response) async {
-    var amount = response["data"]["amount"] / 100;
-    var data = TransactionModel(
-        id: "",
-        customerName: userName,
-        customerId: userData["id"],
-        date: today,
-        amount: response["data"]["amount"].toDouble() / 100,
-        transactionType: 0,
-        note: noteController.text,
-        invoiceNo: response["data"]["merchantTransactionId"],
-        category: "GOLD",
-        discount: 0,
-        staffId: "",
-        merchentTransactionId: response["data"]["merchantTransactionId"],
-        transactionMode: "online");
-    var db = TransactionProvider();
-    db.initiliase();
-    db.create(data).then((value) {
-      final snackBar =
-          SnackBar(content: const Text("Transaction Add Successfully...."));
+//   updateFirebaseStatus(var response) {
+//     Provider.of<phonePe_Payment>(context, listen: false)
+//         .updatePaymentbyTransactionId(response["data"]["merchantTransactionId"],
+//             response["code"], response)
+//         .then((value) {
+//       // print("------------- value ----------");
+//       // print(value);
+//     }).then((value) {
+//       if (response["code"] == "PAYMENT_SUCCESS") {
+//         // add Transaction if payment success
+//         addTransaction(response);
+//       } else {
+//         // add Transaction if payment failed
+//       }
+//     });
+//   }
 
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      // Navigator.pushReplacement(context,
-      //     MaterialPageRoute(builder: (context) => TransactionScreen()));
-    });
-    final title = "Successfully Deposited";
+//   DateTime today = DateTime.now();
+//   addTransaction(var response) async {
+//     var amount = response["data"]["amount"] / 100;
+//     double gramPriceInvestDay = 0;
+//     var data = TransactionModel(
+//         id: "",
+//         customerName: userName,
+//         customerId: userData["id"],
+//         date: today,
+//         amount: response["data"]["amount"].toDouble() / 100,
+//         transactionType: 0,
+//         note: noteController.text,
+//         invoiceNo: response["data"]["merchantTransactionId"],
+//         category: "GOLD",
+//         discount: 0,
+//         staffId: "",
+//         gramPriceInvestDay: gramPriceInvestDay, // Add this required parameter
+//         gramWeight: 0, // Add this required parameter
+//         branch: 0, // Add this required parameter
+//         merchentTransactionId: response["data"]["merchantTransactionId"],
+//         transactionMode: "online");
+//     var db = TransactionProvider();
+//     db.initiliase();
+//     db.create(data).then((value) {
+//       final snackBar =
+//           SnackBar(content: const Text("Transaction Add Successfully...."));
 
-    sendNotification(
-      title,
-      adminToken,
-      response["data"]["amount"].toDouble() / 100,
-    );
-  }
+//       ScaffoldMessenger.of(context).showSnackBar(snackBar);
+//       // Navigator.pushReplacement(context,
+//       //     MaterialPageRoute(builder: (context) => TransactionScreen()));
+//     });
+//     final title = "Successfully Deposited";
 
-  sendNotification(String title, String token, double amt) async {
-    // print("check notification");
-    // // print(token);
-    final data = {
-      'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-      'id': 1,
-      'status': 'done',
-      'message': title,
-    };
-    try {
-      http.Response response =
-          await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
-              headers: <String, String>{
-                'Content-Type': 'application/json',
-                'Authorization':
-                    'key=AAAAYxF4bUQ:APA91bE-vvHQIfOI27flf420DjMEb1fkc0rlrFLz6N5HqVKvstpVEl-HzVmubii6ZDHDO5AYHVdvauIbGC0T-dS9yXskwgi4XVd38HOaix_hwBt7riU3tjDBdYx4mGAgglXPP3cEp5jX'
-              },
-              body: jsonEncode(<String, dynamic>{
-                'notification': <String, dynamic>{
-                  'title': title,
-                  'body':
-                      "You have received a deposit of Rs $amt from a $userName"
-                },
-                'priority': 'high',
-                'data': data,
-                'to': "$token"
-              }));
-      // print(response.body);
-      if (response.statusCode == 200) {
-        // print("notification is sended");
-      } else {
-        // print("error");
-      }
-    } catch (e) {}
-  }
-}
+//     sendNotification(
+//       title,
+//       adminToken,
+//       response["data"]["amount"].toDouble() / 100,
+//     );
+//   }
+
+//   sendNotification(String title, String token, double amt) async {
+//     // print("check notification");
+//     // // print(token);
+//     final data = {
+//       'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+//       'id': 1,
+//       'status': 'done',
+//       'message': title,
+//     };
+//     try {
+//       http.Response response =
+//           await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
+//               headers: <String, String>{
+//                 'Content-Type': 'application/json',
+//                 'Authorization':
+//                     'key=AAAAYxF4bUQ:APA91bE-vvHQIfOI27flf420DjMEb1fkc0rlrFLz6N5HqVKvstpVEl-HzVmubii6ZDHDO5AYHVdvauIbGC0T-dS9yXskwgi4XVd38HOaix_hwBt7riU3tjDBdYx4mGAgglXPP3cEp5jX'
+//               },
+//               body: jsonEncode(<String, dynamic>{
+//                 'notification': <String, dynamic>{
+//                   'title': title,
+//                   'body':
+//                       "You have received a deposit of Rs $amt from a $userName"
+//                 },
+//                 'priority': 'high',
+//                 'data': data,
+//                 'to': "$token"
+//               }));
+//       // print(response.body);
+//       if (response.statusCode == 200) {
+//         // print("notification is sended");
+//       } else {
+//         // print("error");
+//       }
+//     } catch (e) {}
+//   }
+// }

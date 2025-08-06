@@ -4,90 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-class UserModel {
-  final String? id;
-  final String? name;
-  final String? custId;
-  final String? phoneNo;
-  final String? address;
-  final String? place;
-  final double? balance;
-  final String? token;
-  final double? totalGram;
-
-  final DateTime? dateofBirth;
-  final String? nominee;
-  final String? nomineePhone;
-  final String? nomineeRelation;
-  final String? adharCard;
-  final String? panCard;
-  final String? pinCode;
-
-  UserModel({
-    this.id,
-    this.name,
-    this.custId,
-    this.phoneNo,
-    this.address,
-    this.place,
-    this.balance,
-    this.token,
-    this.totalGram,
-    this.dateofBirth,
-    this.nominee,
-    this.nomineePhone,
-    this.nomineeRelation,
-    this.adharCard,
-    this.panCard,
-    this.pinCode,
-  });
-
-  factory UserModel.fromJson(Map<String, dynamic> data) {
-    return UserModel(
-      id: data['id'],
-      name: data['name'],
-      custId: data['custId'],
-      phoneNo: data['phoneNo'],
-      address: data['address'],
-      place: data['place'],
-      balance: (data['balance'] as num?)?.toDouble(),
-      token: data['token'],
-      totalGram: (data['totalGram'] as num?)?.toDouble(),
-      dateofBirth: data['dateofBirth'] != null
-          ? DateTime.parse(data['dateofBirth'])
-          : null,
-      nominee: data['nominee'],
-      nomineePhone: data['nomineePhone'],
-      nomineeRelation: data['nomineeRelation'],
-      adharCard: data['adharCard'],
-      panCard: data['panCard'],
-      pinCode: data['pinCode'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'custId': custId,
-      'phoneNo': phoneNo,
-      'address': address,
-      'place': place,
-      'balance': balance,
-      'token': token,
-      'totalGram': totalGram,
-      'dateofBirth': dateofBirth?.toIso8601String(),
-      'nominee': nominee,
-      'nomineePhone': nomineePhone,
-      'nomineeRelation': nomineeRelation,
-      'adharCard': adharCard,
-      'panCard': panCard,
-      'pinCode': pinCode,
-    };
-  }
-}
+import '../model/customerModel.dart';
 
 DateTime? _toDate(dynamic value) {
   if (value == null) return null;
@@ -107,54 +24,16 @@ class User with ChangeNotifier {
   late List<UserModel> _user;
   late List<UserModel> user;
 
-  // Future loginData(String custId, String password) async {
-  //   QuerySnapshot querySnapshot =
-  //       await collectionReference.where("custId", isEqualTo: custId).get();
-  //   print(querySnapshot.docs.length);
-  // }
-
   set listStaff(List<UserModel> val) {
     _user = val;
     notifyListeners();
   }
 
   List<UserModel> get listUsers => _user;
-  // Map<String, UserModel> get users {
-  //   return {..._user};
-  // }
 
   int get userCount {
     return _user.length;
   }
-
-  // Future<void> create(UserModel userModel) async {
-  //   try {
-  //     print("inside create ");
-  //     print(userModel.name);
-  //     await collectionReference.add({
-  //       'name': userModel.name,
-  //       'custId': userModel.custId,
-  //       'phone_no': userModel.phoneNo,
-  //       'address': userModel.address,
-  //       'place': userModel.place,
-  //       'balance': userModel.balance,
-  //       'timestamp': FieldValue.serverTimestamp()
-  //     });
-  //     notifyListeners();
-  //     final newUser = UserModel(
-  //       id: userModel.id,
-  //       name: userModel.name,
-  //       custId: userModel.custId,
-  //       phoneNo: userModel.phoneNo,
-  //       address: userModel.address,
-  //       place: userModel.place,
-  //     );
-
-  //     notifyListeners();
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
 
   Future<List?> read() async {
     QuerySnapshot querySnapshot;
@@ -325,6 +204,7 @@ class User with ChangeNotifier {
             "custId": doc["custId"],
             "phoneNo": doc["phone_no"],
             "address": doc["address"],
+            "staffId": doc["staffId"],
             // "scheme": doc["scheme"],
             "place": doc["place"],
             "balance": doc['balance'],
@@ -349,47 +229,71 @@ class User with ChangeNotifier {
     } catch (e) {
       print(e);
     }
-
-    // try {
-    //   QuerySnapshot querySnapshot =
-    //       await collectionReference.where("custId", isEqualTo: custId).get();
-
-    //   if (querySnapshot.docs.isNotEmpty) {
-    //     final doc = querySnapshot.docs.first;
-    //     final userData = doc.data() as Map<String, dynamic>;
-
-    //     // Optionally store the user data locally if needed
-    //     final user = UserModel.fromJson({
-    //       ...userData,
-    //       'id': doc.id,
-    //     });
-
-    //     _user = [user]; // store single user
-    //     saveUserLocally(user);
-    //     notifyListeners();
-
-    //     return {
-    //       'success': true,
-    //       'user': user,
-    //     };
-    //   } else {
-    //     return {
-    //       'success': false,
-    //       'message': 'No user found with this ID',
-    //     };
-    //   }
-    // } catch (e) {
-    //   print(e);
-    //   return {
-    //     'success': false,
-    //     'message': 'Error occurred: $e',
-    //   };
-    // }
   }
 
-  Future<void> saveUserLocally(UserModel user) async {
-    final prefs = await SharedPreferences.getInstance();
-    final userJson = jsonEncode(user.toJson());
-    await prefs.setString('user_data', userJson);
+  Future<bool?> create(
+      UserModel userModel,
+      String customerId,
+      String schemeType,
+      String assignStaff,
+      String assignStaffName,
+      String orderAdv) async {
+    try {
+      QuerySnapshot querySnapshot;
+
+      querySnapshot = await collectionReference.orderBy('custId').get();
+      var user = querySnapshot.docs.where((doc) => doc['custId'] == customerId);
+      // print(scheme);
+      // print('Selected Scheme ID: ${scheme!.id}');
+      // print('Selected Scheme Name: ${scheme!.name}');
+
+      if (user.length == 0) {
+        await collectionReference.add({
+          'name': userModel.name,
+          'custId': customerId,
+          'phone_no': userModel.phoneNo,
+          'address': userModel.address,
+          'place': userModel.place,
+          'balance': 0.00,
+          'staffId': assignStaff,
+          //  userModel.staffId,
+          'timestamp': FieldValue.serverTimestamp(),
+          'token': "",
+          'schemeType': schemeType,
+          // "scheme": {"id": scheme.id, "name": scheme.name},
+          'total_gram': 0.0000,
+          'branch': userModel.branch,
+          'branchName': userModel.branchName,
+          'dateofBirth': userModel.dateofBirth,
+          'nominee': userModel.nominee,
+          'nomineePhone': userModel.nomineePhone,
+          'nomineeRelation': userModel.nomineeRelation,
+          'adharCard': userModel.adharCard,
+          'panCard': userModel.panCard,
+          'pinCode': userModel.pinCode,
+          'staffName': assignStaffName,
+
+          //  userModel.staffName,
+          "otp": 0,
+          "isClosed": "false",
+          "otpExp": FieldValue.serverTimestamp(),
+          "otpGen": FieldValue.serverTimestamp(),
+          "mail": userModel.mailId,
+          "orderAdvance": orderAdv,
+          "profileImage": "",
+          "tax": userModel.tax,
+          "amc": userModel.amc,
+          "country": userModel.country
+          // "staffAssigneeId": assignStaff,
+          // "staffAssigneeName": assignStaffName
+        });
+
+        return Future<bool>.value(false);
+      } else {
+        return Future<bool>.value(true);
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 }

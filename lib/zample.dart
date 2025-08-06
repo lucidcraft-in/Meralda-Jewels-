@@ -2,12 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:meralda_gold_user/providers/collectionProvider.dart';
 import 'package:meralda_gold_user/screens/homeNavigation.dart';
 import 'package:meralda_gold_user/web/webHome.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'providers/banner.dart';
+import 'providers/branchProvider.dart';
 import 'providers/category.dart';
 import 'providers/goldrate.dart';
 import 'providers/payment.dart';
@@ -36,6 +38,8 @@ class GoldJewelryApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PaymentBillProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => PaymentDetails()),
+        ChangeNotifierProvider(create: (_) => BranchProvider()),
+        // ChangeNotifierProvider(create: (_) => CollectionProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

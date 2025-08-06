@@ -2,66 +2,42 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 class TransactionModel {
-  final String? id;
-  final String? customerName;
-  final String? customerId;
-  final DateTime? date;
-  final double? amount;
-  final int? transactionType; // It define transaction Reciept(0) or Purchase(1)
-  final String? note;
+  final String id;
+  final String customerName;
+  final String customerId;
+  final DateTime date;
+  final double amount;
+  final int transactionType;
+  final String note;
   final String invoiceNo;
   final String category;
   final double discount;
   final String staffId;
-  final double? gramPriceInvestDay;
-  final double? gramWeight;
-  final int? branch;
+  final double gramPriceInvestDay;
+  final double gramWeight;
+  final int branch;
+
   final merchentTransactionId; //
-  final String
-      transactionMode; // if google or phonePe or online transaction pay, mode is "online",else "offline"
+  final String transactionMode;
 
-  TransactionModel(
-      {@required this.id,
-      @required this.customerName,
-      @required this.customerId,
-      @required this.date,
-      @required this.amount,
-      @required this.transactionType,
-      @required this.note,
-      @required this.gramPriceInvestDay,
-      @required this.gramWeight,
-      @required this.branch,
-      required this.invoiceNo,
-      required this.category,
-      required this.discount,
-      required this.staffId,
-      required this.merchentTransactionId,
-      required this.transactionMode});
-
-  // TransactionModel.fromData(Map<String, dynamic> data)
-  //     : id = data['id'],
-  //       customerName = data['customerName'],
-  //       customerId = data['customerId'],
-  //       date = data['date'],
-  //       amount = data['amount'],
-  //       transactionType = data['transactionType'],
-  //       note = data['note'],
-  //       gramPriceInvestDay = data['gramPriceInvestDay'],
-  //       gramWeight = data['gramWeight'],
-  //       branch = data['branch'];
-
-  // Map<String, dynamic> toMap() {
-  //   return {
-  //     'id': id,
-  //     'customerName': customerName,
-  //     'customerId': customerId,
-  //     'date': date,
-  //     'amount': amount,
-  //     'transactionType': transactionType,
-  //     'note': note,
-  //     "branch": branch,
-  //   };
-  // }
+  TransactionModel({
+    required this.id,
+    required this.customerName,
+    required this.customerId,
+    required this.date,
+    required this.amount,
+    required this.transactionType,
+    required this.note,
+    required this.invoiceNo,
+    required this.category,
+    required this.discount,
+    required this.staffId,
+    required this.gramPriceInvestDay,
+    required this.gramWeight,
+    required this.branch,
+    required this.merchentTransactionId,
+    required this.transactionMode,
+  });
 }
 
 class TransactionProvider with ChangeNotifier {
@@ -225,41 +201,129 @@ class TransactionProvider with ChangeNotifier {
     return null;
   }
 
-  // Future<List> read(String id) async {
-  //   QuerySnapshot querySnapshot;
-  //   List transactionList = [];
-  //   try {
-  //     querySnapshot = await collectionReference
-  //         .orderBy('timestamp', descending: true)
-  //         .get();
+  Future createDirect(
+      TransactionModel transactionModel, double tax, double amc) async {
+    QuerySnapshot querySnapshot;
+    QuerySnapshot goldRate;
 
-  //     if (querySnapshot.docs.isNotEmpty) {
-  //       for (var doc in querySnapshot.docs.toList()) {
-  //         if (id == doc['customerId']) {
-  //           Map a = {
-  //             "id": doc.id,
-  //             'customerName': doc['customerName'],
-  //             'customerId': doc['customerId'],
-  //             'date': doc['date'],
-  //             'amount': doc['amount'],
-  //             'transactionType': doc['transactionType'],
-  //             'note': doc['note'],
-  //             'invoiceNo': doc['invoiceNo'],
-  //             'category': doc['category'],
-  //             'discount': doc['discount'],
-  //             'staffId': doc['staffId'],
-  //             'gramPriceInvestDay': doc['gramPriceInvestDay'],
-  //             'gramWeight': doc['gramWeight'],
-  //           };
+    String usrId = transactionModel.customerId;
 
-  //           transactionList.add(a);
-  //         }
-  //       }
+    double averageRate = 0;
+    double totalAverageRate = 0;
+    try {
+      querySnapshot = await collectionReferenceUser.get();
+      goldRate = await collectionReferenceGoldrate.get();
 
-  //       return transactionList;
-  //     }
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
+      if (querySnapshot.docs.isNotEmpty) {
+        for (var doc in querySnapshot.docs
+            .where((element) => element.id.toString() == usrId.toString())
+            .toList()) {
+          oldBalance = doc["balance"].toDouble();
+          gramTotalWeight = doc["total_gram"];
+
+          if (doc["balance"] != 0) {
+            averageRate = doc["balance"] / doc["total_gram"];
+          }
+        }
+      }
+
+      if (transactionModel.transactionType == 0) {
+        if (tax > 0 && amc > 0) {
+// find mc value
+          double mcValue = (transactionModel.gramPriceInvestDay * amc) / 100;
+          // print("---- mcValue");
+          // print(mcValue);
+// find Gram Included mc
+          double gramIncludedMc = transactionModel.gramPriceInvestDay + mcValue;
+          // print("---- gramIncludedMc");
+          // print(gramIncludedMc);
+// find Tax value
+          double taxValue = (gramIncludedMc * tax) / 100;
+          // print("---- taxValue");
+          // print(taxValue);
+// find gramwightPrice
+          double priceValue = taxValue + gramIncludedMc;
+          // print("---- priceValue");
+          // print(priceValue);
+// find gramwightPrice
+          gramWeight = transactionModel.amount / priceValue;
+          // print("---- gramWeight");
+          // print(gramWeight);
+          // gramWeight = (transactionModel.amount -
+          //         (transactionModel.amount * tax / 100) -
+          //         (transactionModel.amount * amc / 100)) /
+          //     transactionModel.gramPriceInvestDay;
+        } else {
+          gramWeight =
+              transactionModel.amount / transactionModel.gramPriceInvestDay;
+        }
+      } else {
+        // gram weight for purchase
+
+        if (averageRate != 0) {
+          gramWeight = transactionModel.amount / averageRate;
+        }
+      }
+      num gramWeightFixed = num.parse(gramWeight.toStringAsFixed(4));
+      print("---------- gramWeightFixed");
+      print(gramWeightFixed);
+      if (transactionModel.transactionType == 0) {
+        newbalance = oldBalance + transactionModel.amount;
+        if (transactionModel.discount != 0) {
+          newbalance = newbalance - transactionModel.discount;
+        }
+        gramTotalWeightFinal = gramTotalWeight + gramWeight;
+      } else if (transactionModel.transactionType == 1) {
+        newbalance = oldBalance - transactionModel.amount;
+        gramTotalWeightFinal = gramTotalWeight - gramWeight;
+      }
+
+      num gramTotalWeightFinalFixed =
+          num.parse(gramTotalWeightFinal.toStringAsFixed(4));
+
+      DocumentReference docRef = await collectionReference.add({
+        'customerName': transactionModel.customerName,
+        'customerId': transactionModel.customerId,
+        'date': transactionModel.date,
+        'amount': transactionModel.amount,
+        'transactionType': transactionModel.transactionType,
+        'note': transactionModel.note,
+        'timestamp': FieldValue.serverTimestamp(),
+        'invoiceNo': transactionModel.invoiceNo,
+        'category': transactionModel.category,
+        'discount': transactionModel.discount,
+        'staffId': transactionModel.staffId,
+        'gramWeight': gramWeightFixed,
+        'gramPriceInvestDay': transactionModel.transactionType == 0
+            ? transactionModel.gramPriceInvestDay
+            : goldRate.docs[0]['gram'],
+        'staffName': "",
+        'transactionMode': "Direct",
+        "merchentTransactionId": "",
+        "currentBalance": newbalance,
+        "currentBalanceGram": gramTotalWeightFinalFixed,
+        "tax": tax,
+        "amc": amc
+      });
+      await collectionReferenceUser.doc(transactionModel.customerId).update({
+        'balance': newbalance,
+        'total_gram': gramTotalWeightFinalFixed,
+      });
+      notifyListeners();
+
+      String documentId = docRef.id;
+
+      // Return the document ID
+
+      notifyListeners();
+      return [
+        newbalance,
+        gramWeightFixed,
+        gramTotalWeightFinalFixed,
+        documentId
+      ];
+    } catch (e) {
+      print(e);
+    }
+  }
 }
