@@ -332,28 +332,28 @@ class _rightPanalProfileState extends State<RightPanalProfile>
         ),
 
         // Progress Bar
-        SizedBox(height: 12),
-        Container(
-          height: 6,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(3),
-          ),
-          child: Stack(
-            children: [
-              Container(
-                width: (completedInstallments / totalInstallments) *
-                    MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(
-                  color: completedInstallments == totalInstallments
-                      ? Colors.green.shade500
-                      : Colors.blue.shade500,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ],
-          ),
-        ),
+        // SizedBox(height: 12),
+        // Container(
+        //   height: 6,
+        //   decoration: BoxDecoration(
+        //     color: Colors.grey.shade200,
+        //     borderRadius: BorderRadius.circular(3),
+        //   ),
+        //   child: Stack(
+        //     children: [
+        //       Container(
+        //         width: (completedInstallments / totalInstallments) *
+        //             MediaQuery.of(context).size.width,
+        //         decoration: BoxDecoration(
+        //           color: completedInstallments == totalInstallments
+        //               ? Colors.green.shade500
+        //               : Colors.blue.shade500,
+        //           borderRadius: BorderRadius.circular(3),
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
 
         // Status Text
         SizedBox(height: 8),

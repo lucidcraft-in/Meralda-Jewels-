@@ -27,6 +27,97 @@ class _LeftPanelState extends State<LeftPanel> {
     super.initState();
   }
 
+  Widget _remarksOrBonusSection({
+    required String schemeType,
+    required double balance,
+    required double openingAmount,
+  }) {
+    double rem = openingAmount != 0 ? balance / openingAmount : 0;
+    print("================================================================");
+    print(rem);
+    // ----------------------
+    //  ASPIRE → REMARKS
+    // ----------------------
+    if (schemeType != "Aspire") {
+      double percentage;
+
+      if (rem >= 11) {
+        percentage = 100;
+      } else if (rem >= 8) {
+        percentage = 50;
+      } else if (rem >= 6) {
+        percentage = 25;
+      } else {
+        percentage = 0;
+      }
+
+      double bonusAmount = openingAmount * (percentage / 100);
+      double totalRedemption = balance + bonusAmount;
+
+      String bonusText =
+          "$percentage% Eligible AED ${totalRedemption.toStringAsFixed(2)}";
+
+      if (percentage > 0) {
+        return _sectionContainer(text: "Bonus: $bonusText");
+      } else {
+        return Container();
+      }
+    }
+
+    // ----------------------
+    // NON-ASPIRE → BONUS
+    // ----------------------
+    int diamondPercentage = 0;
+    int goldMakingChargeWaiver = 0;
+
+// Eligibility based on completed months
+    if (rem >= 11) {
+      goldMakingChargeWaiver = 16;
+      diamondPercentage = 50;
+    } else if (rem >= 9) {
+      goldMakingChargeWaiver = 12;
+      diamondPercentage = 40;
+    } else if (rem >= 7) {
+      goldMakingChargeWaiver = 10;
+      diamondPercentage = 30;
+    }
+
+// Not eligible → hide section
+    if (diamondPercentage == 0) {
+      return Container();
+    }
+
+// Bonus calculation (same as your logic)
+    double bonusAmount = (openingAmount * (diamondPercentage / 100)) + balance;
+
+    return _sectionContainer(
+      text: """
+Gold Purchase:
+• No making charges up to $goldMakingChargeWaiver%
+
+Diamond Purchase:
+• $diamondPercentage% discount
+""",
+    );
+  }
+
+  Widget _sectionContainer({required String text}) {
+    return Container(
+      margin: EdgeInsets.only(top: 16),
+      width: MediaQuery.of(context).size.width,
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(color: Colors.white70, fontSize: 13),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final accountProvider = context.watch<AccountProvider>();
@@ -45,6 +136,9 @@ class _LeftPanelState extends State<LeftPanel> {
     final user = widget.user;
 
     if (activeAccount != null) {
+      int paymentCount =
+          (activeAccount.balance / activeAccount.openingAmount) as int;
+
       return Container(
         height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
@@ -208,31 +302,50 @@ class _LeftPanelState extends State<LeftPanel> {
                     // Other account details below
                     if (activeAccount.name != "")
                       _buildInfoRow(
-                        icon: Icons.badge_outlined,
-                        label: 'Customer Name',
-                        value: activeAccount!.name ?? 'N/A',
-                      ),
+                          icon: Icons.badge_outlined,
+                          label: 'Customer Name',
+                          value: activeAccount!.name ?? 'N/A',
+                          isSec: true),
                     if (activeAccount.custId != "") SizedBox(height: 12),
                     if (activeAccount.custId != "")
                       _buildInfoRow(
-                        icon: Icons.fingerprint,
-                        label: 'Customer ID',
-                        value: activeAccount.custId ?? 'N/A',
-                      ),
+                          icon: Icons.fingerprint,
+                          label: 'Customer ID',
+                          value: activeAccount.custId ?? 'N/A',
+                          isSec: true),
                     if (activeAccount.schemeType != "") SizedBox(height: 12),
                     if (activeAccount.schemeType != "")
                       _buildInfoRow(
-                        icon: Icons.category_outlined,
-                        label: 'Scheme Type',
-                        value: activeAccount.schemeType ?? 'N/A',
-                      ),
+                          icon: Icons.category_outlined,
+                          label: 'Scheme Type',
+                          value: activeAccount.schemeType ?? 'N/A',
+                          isSec: true),
                     SizedBox(height: 12),
                     _buildInfoRow(
-                      icon: Icons.phone_outlined,
-                      label: 'Phone Number',
-                      value: activeAccount.phoneNo ?? 'N/A',
-                    ),
-
+                        icon: Icons.phone_outlined,
+                        label: 'Phone Number',
+                        value: activeAccount.phoneNo ?? 'N/A',
+                        isSec: true),
+                    SizedBox(height: 12),
+                    _buildInfoRow(
+                        icon: Icons.schema_rounded,
+                        label: 'Scheme :',
+                        value: activeAccount.openingAmount.toString(),
+                        isSec: false),
+                    SizedBox(height: 12),
+                    _buildInfoRow(
+                        icon: Icons.receipt_long,
+                        label: 'No. of Payment :',
+                        value: "$paymentCount/12",
+                        isSec: false),
+                    SizedBox(height: 12),
+                    if (activeAccount.schemeType != "")
+                      _remarksOrBonusSection(
+                        schemeType: activeAccount.schemeType!,
+                        balance: cashBalance,
+                        openingAmount: activeAccount.openingAmount ??
+                            0, // Update if your field name is different
+                      ),
                     if (activeAccount.name == "") SizedBox(height: 12),
                     if (activeAccount.name == "")
                       GestureDetector(
@@ -276,18 +389,20 @@ class _LeftPanelState extends State<LeftPanel> {
               if (activeAccount.schemeType != "")
                 Row(
                   children: [
-                    Expanded(
-                      child: _buildBalanceCard(
-                        title: 'Gold Balance',
-                        value: '${gramBalance.toStringAsFixed(3)} g',
-                        icon: Icons.auto_awesome,
-                        gradient: [
-                          Colors.amber.shade400,
-                          Colors.amber.shade600
-                        ],
+                    if (activeAccount.schemeType == "Aspire")
+                      Expanded(
+                        child: _buildBalanceCard(
+                          title: 'Gold Balance',
+                          value: '${gramBalance.toStringAsFixed(3)} g',
+                          icon: Icons.auto_awesome,
+                          gradient: [
+                            Colors.amber.shade400,
+                            Colors.amber.shade600
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 8),
+                    if (activeAccount.schemeType == "Aspire")
+                      SizedBox(width: 8),
                     Expanded(
                       child: _buildBalanceCard(
                         title: 'Amount Balance',
@@ -299,17 +414,22 @@ class _LeftPanelState extends State<LeftPanel> {
                         ],
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: _buildBalanceCard(
-                        title: 'Avg. Price',
-                        value: cashBalance != 0
-                            ? '₹${averagePrice.toStringAsFixed(0)}/g'
-                            : "0.00/g",
-                        icon: Icons.trending_up,
-                        gradient: [Colors.blue.shade400, Colors.blue.shade600],
+                    if (activeAccount.schemeType == "Aspire")
+                      SizedBox(width: 8),
+                    if (activeAccount.schemeType == "Aspire")
+                      Expanded(
+                        child: _buildBalanceCard(
+                          title: 'Avg. Price',
+                          value: cashBalance != 0
+                              ? '₹${averagePrice.toStringAsFixed(0)}/g'
+                              : "0.00/g",
+                          icon: Icons.trending_up,
+                          gradient: [
+                            Colors.blue.shade400,
+                            Colors.blue.shade600
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
               SizedBox(height: 24),
@@ -845,31 +965,54 @@ class _LeftPanelState extends State<LeftPanel> {
     required IconData icon,
     required String label,
     required String value,
+    bool? isSec,
   }) {
     return Row(
       children: [
         Icon(icon, color: Colors.white70, size: 18),
         SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-              SizedBox(height: 2),
-              Text(
-                value,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+        isSec == true
+            ? Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
+              )
+            : Row(
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(width: 2),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
       ],
     );
   }
