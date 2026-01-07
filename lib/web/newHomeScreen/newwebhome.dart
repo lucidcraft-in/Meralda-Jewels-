@@ -12,6 +12,7 @@ import 'package:meralda_gold_user/web/newHomeScreen/widget/howItWorkWidget.dart'
 import 'package:shared_preferences/shared_preferences.dart';
 import '../webHome.dart';
 import '../webPayScreen.dart';
+import '../widgets/jewelleryLocations.dart';
 import 'widget/planeSection.dart';
 
 class Newwebhome extends StatefulWidget {
@@ -27,6 +28,7 @@ class _NewwebhomeState extends State<Newwebhome> {
   // Keys for each section
   final GlobalKey plansKey = GlobalKey();
   final GlobalKey howItWorksKey = GlobalKey();
+  final GlobalKey showroomKey = GlobalKey();
   final GlobalKey benefitsKey = GlobalKey();
   final GlobalKey faqKey = GlobalKey();
   final GlobalKey contactKey = GlobalKey();
@@ -94,6 +96,7 @@ class _NewwebhomeState extends State<Newwebhome> {
                 Container(
                     key: plansKey, child: buildPlansSection(context, isMobile)),
                 Container(key: howItWorksKey, child: const HowItWorksScreen()),
+                Container(key: showroomKey, child: LocationSection()),
                 Container(key: benefitsKey, child: const BenefitsSection()),
                 Container(key: faqKey, child: const FAQSection()),
                 Container(key: contactKey, child: const ContactPage()),
@@ -175,6 +178,8 @@ class _NewwebhomeState extends State<Newwebhome> {
                 _buildNavItem('Our Plans', () => scrollToSection(plansKey)),
                 _buildNavItem(
                     'How It Works', () => scrollToSection(howItWorksKey)),
+                _buildNavItem(
+                    'Our Showroom', () => scrollToSection(showroomKey)),
                 _buildNavItem('Benefits', () => scrollToSection(benefitsKey)),
                 _buildNavItem('FAQ', () => scrollToSection(faqKey)),
                 _buildNavItem('Contact', () => scrollToSection(contactKey)),

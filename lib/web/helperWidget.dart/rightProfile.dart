@@ -731,25 +731,7 @@ class _rightPanalProfileState extends State<RightPanalProfile>
                           child: Material(
                             color: Colors.transparent,
                             child: InkWell(
-                              // onTap: () async {
-                              // _isLoading
-                              //     ? null
-
-                              //     : _saveForm(activeAccount);
-                              // },
-
                               onTap: () async {
-                                // if (_isLoading) return; // Prevent double taps
-
-                                // setState(() {
-                                //   _isLoading = true;
-                                // });
-
-                                // try {
-                                //   await _saveForm(activeAccount);
-                                // } finally {
-                                //   setState(() => _isLoading = false);
-                                // }
                                 if (_isLoading) return;
                                 setState(() => _isLoading = true);
 
@@ -1198,17 +1180,18 @@ class _rightPanalProfileState extends State<RightPanalProfile>
 
       final payload = {
         "merchantOrderId": transactionId,
+        // "amount": (double.parse(amountCntrl.text) * 100).toInt(),
         "amount": (1 * 100).toInt(),
         "expireAfter": 1200,
         "metaInfo": {},
         "paymentFlow": {
           "type": "PG_CHECKOUT",
           "message": "Payment message used for collect requests",
-          // "merchantUrls": {"redirectUrl": "https://meralda-gold-9ff64.web.app/"}
-          "merchantUrls": {
-            "redirectUrl":
-                "https://meralda-gold-9ff64.web.app/?status=success&txnId=MRLD00123324"
-          }
+          "merchantUrls": {"redirectUrl": "https://meralda-gold-9ff64.web.app/"}
+          // "merchantUrls": {
+          //   "redirectUrl":
+          //       "https://meralda-gold-9ff64.web.app/?status=success&txnId=MRLD00123324"
+          // }
         }
       };
 
@@ -1246,92 +1229,92 @@ class _rightPanalProfileState extends State<RightPanalProfile>
   Object? result;
   StreamSubscription<DocumentSnapshot>? _txnSub;
 
-  void _startTransactionListener(String transactionId, SchemeUserModel user) {
-    final docRef = FirebaseFirestore.instance
-        .collection('phonepe_transactions')
-        .doc(transactionId);
+  // void _startTransactionListener(String transactionId, SchemeUserModel user) {
+  //   final docRef = FirebaseFirestore.instance
+  //       .collection('phonepe_transactions')
+  //       .doc(transactionId);
 
-    // cancel any old subscription
-    _txnSub?.cancel();
+  //   // cancel any old subscription
+  //   _txnSub?.cancel();
 
-    _txnSub = docRef.snapshots().listen((snapshot) {
-      if (!snapshot.exists) return;
-      final status =
-          (snapshot.data() as Map<String, dynamic>?)?['status'] as String? ??
-              'PENDING';
-      print('Listener: txn $transactionId => $status');
+  //   _txnSub = docRef.snapshots().listen((snapshot) {
+  //     if (!snapshot.exists) return;
+  //     final status =
+  //         (snapshot.data() as Map<String, dynamic>?)?['status'] as String? ??
+  //             'PENDING';
+  //     print('Listener: txn $transactionId => $status');
 
-      if (status == 'PAYMENT_SUCCESS') {
-        _txnSub?.cancel();
-        isSuccess(user, transactionId);
-      } else if (status == 'PAYMENT_ERROR') {
-        _txnSub?.cancel();
-        isfaild(transactionId);
-      } // else keep waiting
-    }, onError: (err) {
-      print('Listener error: $err');
-    });
-  }
+  //     if (status == 'PAYMENT_SUCCESS') {
+  //       _txnSub?.cancel();
+  //       isSuccess(user, transactionId);
+  //     } else if (status == 'PAYMENT_ERROR') {
+  //       _txnSub?.cancel();
+  //       isfaild(transactionId);
+  //     } // else keep waiting
+  //   }, onError: (err) {
+  //     print('Listener error: $err');
+  //   });
+  // }
 
-  isfaild(String transId) {
-    var res = {
-      "code": "Failed",
-      "amount": amountCntrl.text,
-      "type": "online",
-      "transactionId": transId
-    };
-    var db = phonePe_Payment();
-    db.initiliase();
-    db.updateTransaction(transId, "PAYMENT_ERROR");
-    QuickAlert.show(
-        context: context,
-        type: QuickAlertType.error,
-        title: 'Oops...',
-        text: 'Sorry, Payment Failed',
-        confirmBtnColor: Theme.of(context).primaryColor,
-        confirmBtnTextStyle: TextStyle(
-            fontSize: 13, color: Colors.white, fontWeight: FontWeight.bold),
-        onConfirmBtnTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ResponseScreen(
-                response: res,
-              ),
-            ),
-          );
-        });
-  }
+  // isfaild(String transId) {
+  //   var res = {
+  //     "code": "Failed",
+  //     "amount": amountCntrl.text,
+  //     "type": "online",
+  //     "transactionId": transId
+  //   };
+  //   var db = phonePe_Payment();
+  //   db.initiliase();
+  //   db.updateTransaction(transId, "PAYMENT_ERROR");
+  //   QuickAlert.show(
+  //       context: context,
+  //       type: QuickAlertType.error,
+  //       title: 'Oops...',
+  //       text: 'Sorry, Payment Failed',
+  //       confirmBtnColor: Theme.of(context).primaryColor,
+  //       confirmBtnTextStyle: TextStyle(
+  //           fontSize: 13, color: Colors.white, fontWeight: FontWeight.bold),
+  //       onConfirmBtnTap: () {
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (context) => ResponseScreen(
+  //               response: res,
+  //             ),
+  //           ),
+  //         );
+  //       });
+  // }
 
-  isSuccess(SchemeUserModel user, String transId) {
-    var res = {
-      "code": "PAYMENT_SUCCESS",
-      "amount": amountCntrl.text,
-      "type": "online",
-      "transactionId": transId
-    };
-    var db = phonePe_Payment();
-    db.initiliase();
-    db.updateTransaction(transId, "PAYMENT_SUCCESS");
-    _saveForm(
-      user,
-    );
-    QuickAlert.show(
-        context: context,
-        type: QuickAlertType.success,
-        text: 'Transaction Completed Successfully!',
-        confirmBtnColor: Theme.of(context).primaryColor,
-        confirmBtnTextStyle: TextStyle(
-            fontSize: 13, color: Colors.white, fontWeight: FontWeight.bold),
-        onConfirmBtnTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ResponseScreen(
-                response: res,
-              ),
-            ),
-          );
-        });
-  }
+  // isSuccess(SchemeUserModel user, String transId) {
+  //   var res = {
+  //     "code": "PAYMENT_SUCCESS",
+  //     "amount": amountCntrl.text,
+  //     "type": "online",
+  //     "transactionId": transId
+  //   };
+  //   var db = phonePe_Payment();
+  //   db.initiliase();
+  //   db.updateTransaction(transId, "PAYMENT_SUCCESS");
+  //   _saveForm(
+  //     user,
+  //   );
+  //   QuickAlert.show(
+  //       context: context,
+  //       type: QuickAlertType.success,
+  //       text: 'Transaction Completed Successfully!',
+  //       confirmBtnColor: Theme.of(context).primaryColor,
+  //       confirmBtnTextStyle: TextStyle(
+  //           fontSize: 13, color: Colors.white, fontWeight: FontWeight.bold),
+  //       onConfirmBtnTap: () {
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (context) => ResponseScreen(
+  //               response: res,
+  //             ),
+  //           ),
+  //         );
+  //       });
+  // }
 }

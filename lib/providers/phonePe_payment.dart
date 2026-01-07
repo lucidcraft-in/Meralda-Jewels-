@@ -115,30 +115,30 @@ class phonePe_Payment with ChangeNotifier {
     return id;
   }
 
-  updateTransaction(String orderId, String status) async {
-    try {
-      // Query the collection where 'orderId' matches the given value
-      QuerySnapshot snapshot =
-          await collectionReference // Replace with your collection name
-              .where('TransactionId', isEqualTo: orderId)
-              .limit(1) // Limit the result to 1 document
-              .get();
+  // updateTransaction(String orderId, String status) async {
+  //   try {
+  //     // Query the collection where 'orderId' matches the given value
+  //     QuerySnapshot snapshot =
+  //         await collectionReference // Replace with your collection name
+  //             .where('TransactionId', isEqualTo: orderId)
+  //             .limit(1) // Limit the result to 1 document
+  //             .get();
 
-      // Check if any document was found
-      if (snapshot.docs.isNotEmpty) {
-        // Return the document ID
-        await collectionReference
-            .doc(snapshot.docs.first.id)
-            .update({"status": status});
-      } else {
-        // No document found
-        return null;
-      }
-    } catch (e) {
-      // print('Error fetching document: $e');
-      return null;
-    }
-  }
+  //     // Check if any document was found
+  //     if (snapshot.docs.isNotEmpty) {
+  //       // Return the document ID
+  //       await collectionReference
+  //           .doc(snapshot.docs.first.id)
+  //           .update({"status": status});
+  //     } else {
+  //       // No document found
+  //       return null;
+  //     }
+  //   } catch (e) {
+  //     // print('Error fetching document: $e');
+  //     return null;
+  //   }
+  // }
 
   Future updatePaymentbyTransactionId(
       String id, String status, var data) async {
