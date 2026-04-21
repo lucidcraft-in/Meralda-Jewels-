@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:html' as html;
 
 class LogoutButton extends StatelessWidget {
   final Function onLogoutSuccess; // Optional callback after successful logout
@@ -44,6 +46,18 @@ class LogoutButton extends StatelessWidget {
       try {
         SharedPreferences preferences = await SharedPreferences.getInstance();
         await preferences.clear();
+        if (kIsWeb) {
+          // Clear browser storage (important!)
+          html.window.localStorage.clear();
+          html.window.sessionStorage.clear();
+
+          // Redirect to main landing domain
+          html.window.open(
+            'https://meralda-jewels.web.app/?logout=true',
+            '_self',
+          );
+          return; // stop further execution
+        }
 
         // Close loading dialog
         Navigator.of(context).pop();

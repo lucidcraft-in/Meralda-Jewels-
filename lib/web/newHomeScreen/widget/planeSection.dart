@@ -8,6 +8,8 @@ import '../../schemeDiologs/aspireDialog.dart';
 import '../../webHome.dart';
 import '../../webPayScreen.dart';
 import '../../webProfile.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 Widget buildPlansSection(BuildContext context, bool isMobile) {
   final screenWidth = MediaQuery.of(context).size.width;
@@ -66,18 +68,6 @@ Widget buildPlansSection(BuildContext context, bool isMobile) {
           Column(
             children: [
               PlanCardWidget(
-                title: 'Aspire',
-                subtitle: 'Gateway to Luxury',
-                description:
-                    'The Meralda Aspire Jewellery Buying Plan is a gateway to owning coveted pieces by paying fixed instalments starting from only ₹2000 for 11 months. Each payment reserves a portion of gold weight equivalent to the amount paid, and, at the time of redemption, you can get your jewellery equivalent to the accumulated weight without paying any making charges up to 16%.',
-                features: [
-                  'Get Advantage of Average Gold Rate',
-                  'Easy Monthly Instalments',
-                ],
-                isMobile: isMobile,
-              ),
-              const SizedBox(height: 30),
-              PlanCardWidget(
                 title: 'Wishlist',
                 subtitle: 'Turn Desires into Reality',
                 description:
@@ -93,27 +83,24 @@ Widget buildPlansSection(BuildContext context, bool isMobile) {
                 isPopular: true,
                 cardColor: const Color(0xFFD4A574),
               ),
+              const SizedBox(height: 30),
+              PlanCardWidget(
+                title: 'Aspire',
+                subtitle: 'Gateway to Luxury',
+                description:
+                    'The Meralda Aspire Jewellery Buying Plan is a gateway to owning coveted pieces by paying fixed instalments starting from only ₹2000 for 11 months. Each payment reserves a portion of gold weight equivalent to the amount paid, and, at the time of redemption, you can get your jewellery equivalent to the accumulated weight without paying any making charges up to 16%.',
+                features: [
+                  'Get Advantage of Average Gold Rate',
+                  'Easy Monthly Instalments',
+                ],
+                isMobile: isMobile,
+              ),
             ],
           )
         else
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: PlanCardWidget(
-                  title: 'Aspire',
-                  subtitle: 'Gateway to Luxury',
-                  description:
-                      'The Meralda Aspire Jewellery Buying Plan is a gateway to owning coveted pieces by paying fixed instalments starting from only ₹2000 for 11 months. Each payment reserves a portion of gold weight equivalent to the amount paid, and, at the time of redemption, you can get your jewellery equivalent to the accumulated weight without paying any making charges up to 16%.',
-                  features: [
-                    'Get Advantage of Average Gold Rate',
-                    'Easy Monthly Instalments',
-                  ],
-                  isMobile: isMobile,
-                  isPopular: true,
-                ),
-              ),
-              SizedBox(width: isTablet ? 20 : 40),
               Expanded(
                 child: PlanCardWidget(
                   title: 'Wishlist',
@@ -127,6 +114,21 @@ Widget buildPlansSection(BuildContext context, bool isMobile) {
                   isMobile: isMobile,
                   isPopular: false,
                   cardColor: const Color(0xFFD4A574),
+                ),
+              ),
+              SizedBox(width: isTablet ? 20 : 40),
+              Expanded(
+                child: PlanCardWidget(
+                  title: 'Aspire',
+                  subtitle: 'Gateway to Luxury',
+                  description:
+                      'The Meralda Aspire Jewellery Buying Plan is a gateway to owning coveted pieces by paying fixed instalments starting from only ₹2000 for 11 months. Each payment reserves a portion of gold weight equivalent to the amount paid, and, at the time of redemption, you can get your jewellery equivalent to the accumulated weight without paying any making charges up to 16%.',
+                  features: [
+                    'Get Advantage of Average Gold Rate',
+                    'Easy Monthly Instalments',
+                  ],
+                  isMobile: isMobile,
+                  isPopular: true,
                 ),
               ),
             ],
@@ -313,7 +315,9 @@ class _PlanCardWidgetState extends State<PlanCardWidget> {
                             ),
                           );
                         } else {
-                          showLoginDialog(context);
+                          // showLeadDialog(context, widget.title);
+                          showEnrollDialog(context, widget.title);
+                          // showLoginDialog(context);
                         }
                         // showWishlistInfoDialog(context, "", "");
                       },
@@ -443,6 +447,274 @@ class _PlanCardWidgetState extends State<PlanCardWidget> {
           ],
         ),
       ),
+    );
+  }
+
+  void showEnrollDialog(BuildContext context, String schemeName) {
+    final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final cityCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final msgCtrl = TextEditingController();
+    // showDialog(
+    //   context: context,
+    //   builder: (context) {
+    //     return AlertDialog(
+    //       title: Column(
+    //         crossAxisAlignment: CrossAxisAlignment.start,
+    //         children: [
+    //           const Text("Are you interested...!"),
+    //           const SizedBox(height: 4),
+    //           Text(
+    //             schemeName,
+    //             style: const TextStyle(fontSize: 14, color: Colors.grey),
+    //           ),
+    //         ],
+    //       ),
+    //       content: SizedBox(
+    //         width: 420, // ✅ FIXED WIDTH FOR WEB
+    //         child: SingleChildScrollView(
+    //           child: Column(
+    //             mainAxisSize: MainAxisSize.min,
+    //             children: [
+    //               TextField(
+    //                   controller: nameCtrl,
+    //                   decoration: InputDecoration(labelText: "Name")),
+    //               TextField(
+    //                   controller: phoneCtrl,
+    //                   decoration: InputDecoration(labelText: "Phone")),
+    //               TextField(
+    //                   controller: msgCtrl,
+    //                   decoration: InputDecoration(labelText: "Message")),
+    //               TextField(
+    //                   controller: emailCtrl,
+    //                   decoration: InputDecoration(labelText: "Email")),
+    //               TextField(
+    //                   controller: cityCtrl,
+    //                   decoration: InputDecoration(labelText: "City")),
+    //             ],
+    //           ),
+    //         ),
+    //       ),
+    //       actions: [
+    //         TextButton(
+    //           onPressed: () => Navigator.pop(context),
+    //           child: const Text("Cancel"),
+    //         ),
+    //         ElevatedButton(
+    //           child: const Text("Submit"),
+    //           onPressed: () async {
+    //             if (nameCtrl.text.isEmpty || phoneCtrl.text.isEmpty) {
+    //               ScaffoldMessenger.of(context).showSnackBar(
+    //                 const SnackBar(
+    //                     content: Text("Please enter name and phone")),
+    //               );
+    //               return;
+    //             }
+
+    //             await sendLeadToApi(
+    //               schemeName,
+    //               nameCtrl.text,
+    //               phoneCtrl.text,
+    //               msgCtrl.text,
+    //               emailCtrl.text,
+    //               cityCtrl.text,
+    //             );
+
+    //             Navigator.pop(context);
+
+    //             showSuccessSnackBar(context); // ✅ custom snackbar
+    //           },
+    //         ),
+    //       ],
+    //     );
+    //   },
+    // );
+    showDialog(
+      context: context,
+      builder: (context) {
+        bool isSubmitting = false; // ✅ loader state
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Are you interested...!"),
+                  const SizedBox(height: 4),
+                  Text(
+                    schemeName,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 420,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                          controller: nameCtrl,
+                          decoration: const InputDecoration(labelText: "Name")),
+                      TextField(
+                          controller: phoneCtrl,
+                          decoration:
+                              const InputDecoration(labelText: "Phone")),
+                      TextField(
+                          controller: msgCtrl,
+                          decoration:
+                              const InputDecoration(labelText: "Message")),
+                      TextField(
+                          controller: emailCtrl,
+                          decoration:
+                              const InputDecoration(labelText: "Email")),
+                      TextField(
+                          controller: cityCtrl,
+                          decoration: const InputDecoration(labelText: "City")),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting ? null : () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (nameCtrl.text.isEmpty || phoneCtrl.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text("Please enter name and phone")),
+                            );
+                            return;
+                          }
+
+                          setState(
+                              () => isSubmitting = true); // 🔄 start loader
+
+                          await sendLeadToApi(
+                            schemeName,
+                            nameCtrl.text,
+                            phoneCtrl.text,
+                            msgCtrl.text,
+                            emailCtrl.text,
+                            cityCtrl.text,
+                          );
+
+                          Navigator.pop(context);
+
+                          showSuccessSnackBar(context);
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text("Submit"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void showSuccessSnackBar(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final snackbarWidth = 420.0;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: SizedBox(
+          width: snackbarWidth,
+          child: Row(
+            children: [
+              const Icon(
+                Icons.check_circle,
+                color: Colors.white,
+                size: 22,
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Request Submitted Successfully',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Our staff will contact you soon.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          left: screenWidth - snackbarWidth - 24,
+          bottom: 16,
+          right: 16,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  Future<void> sendLeadToApi(
+    String schemeName,
+    String name,
+    String phone,
+    String message,
+    String email,
+    String city,
+  ) async {
+    final url = Uri.parse(
+      "https://us-central1-meralda-uae.cloudfunctions.net/api/add-lead",
+    );
+
+    final now = DateTime.now();
+
+    final body = {
+      "slno": DateTime.now().millisecondsSinceEpoch,
+      "date": "${now.year}-${now.month}-${now.day}",
+      "time": "${now.hour}:${now.minute}",
+      "name": name,
+      "phone": phone,
+      "message": "Interested in: $schemeName",
+      "email": email,
+      "city": city,
+    };
+
+    await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(body),
     );
   }
 }

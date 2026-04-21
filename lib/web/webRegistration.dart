@@ -170,141 +170,6 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
     );
   }
 
-  // Widget _buildWebForm() {
-  //   print("=====================");
-  //   print(activeAccount);
-  //   return Row(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       Expanded(
-  //         child: Column(
-  //           children: [
-  //             // Scheme Type
-  //             _buildDropdown(
-  //               label: "Scheme Type",
-  //               value: selectedSchemeType,
-  //               items: schemeTypeList,
-  //               onChanged: (val) => setState(() {
-  //                 selectedSchemeType = val;
-  //                 _generateCustomerId(val == "Wishlist" ? "WL" : "ASP");
-  //               }),
-  //             ),
-  //             const SizedBox(height: 16),
-  //             Row(
-  //               children: [
-  //                 Expanded(
-  //                   child: _buildCountryDropdown(),
-  //                 ),
-  //                 // Expanded(
-  //                 //   child: _buildDropdown(
-  //                 //     label: "Country",
-  //                 //     value: selectedCountry,
-  //                 //     items: countryList,
-  //                 //     onChanged: (val) => setState(() => selectedCountry = val),
-  //                 //   ),
-  //                 // ),
-  //                 const SizedBox(width: 16),
-  //                 Expanded(child: _buildBranchDropdown())
-  //               ],
-  //             ),
-  //             if (activeAccount == null) const SizedBox(height: 16),
-
-  //             // // Customer Name
-  //             if (activeAccount == null)
-  //               _buildTextField(
-  //                   "Customer Name", Icons.person_outline, _nameController,
-  //                   isRequired: true),
-  //             if (activeAccount == null) const SizedBox(height: 16),
-
-  //             // // Customer ID
-  //             if (activeAccount == null)
-  //               _buildTextField(
-  //                   "Customer ID", Icons.badge_outlined, _custIdController,
-  //                   isReadOnly: true),
-  //             const SizedBox(height: 16),
-
-  //             // // Phone Number
-  //             if (activeAccount == null)
-  //               _buildTextField(
-  //                 "Phone Number",
-  //                 Icons.phone_outlined,
-  //                 _phoneController,
-  //                 isRequired: true,
-  //                 keyboardType: TextInputType.phone,
-  //                 validator: (value) {
-  //                   if (value == null || value.isEmpty) return 'Required';
-  //                   if (value.length != 10) return 'Invalid phone number';
-  //                   return null;
-  //                 },
-  //               ),
-  //             const SizedBox(height: 16),
-  //             _buildTextField(
-  //                 "Scheme Amount", Icons.attach_money, openingAmtCntrl),
-  //             if (activeAccount == null) const SizedBox(height: 16),
-  //             // Address
-  //             if (activeAccount == null)
-  //               _buildTextField(
-  //                 "Address",
-  //                 Icons.home_outlined,
-  //                 _addressController,
-  //                 isRequired: true,
-  //                 maxLines: 3,
-  //               ),
-
-  //             // // Country and Branch selection
-
-  //             if (activeAccount == null) const SizedBox(height: 20),
-  //             if (activeAccount == null) _buildKYCSection(),
-  //             const SizedBox(height: 20),
-  //             // // Additional fields checkbox
-  //             // // if (_nameController.text == "")
-  //             if (activeAccount == null)
-  //               Row(
-  //                 children: [
-  //                   Checkbox(
-  //                     value: _showAdditionalFields,
-  //                     onChanged: (value) => setState(
-  //                         () => _showAdditionalFields = value ?? false),
-  //                   ),
-  //                   Text('Show Additional Fields'),
-  //                 ],
-  //               ),
-  //             if (activeAccount == null) const SizedBox(height: 10),
-
-  //             // Additional fields (conditionally shown)
-
-  //             if (_showAdditionalFields) ...[
-  //               if (activeAccount == null)
-  //                 _buildTextField(
-  //                     "Email", Icons.email_outlined, _emailController),
-  //               if (activeAccount == null) const SizedBox(height: 16),
-  //               if (activeAccount == null)
-  //                 _buildTextField(
-  //                     "Place", Icons.location_on_outlined, _placeController),
-  //               if (activeAccount == null) const SizedBox(height: 16),
-  //               if (activeAccount == null) _buildDateField("Date of Birth"),
-  //               if (activeAccount == null) const SizedBox(height: 16),
-  //               if (activeAccount == null)
-  //                 _buildTextField(
-  //                     "Nominee", Icons.person_outline, _nomineeController),
-  //               if (activeAccount == null) const SizedBox(height: 16),
-  //               if (activeAccount == null)
-  //                 _buildTextField("Nominee Phone", Icons.phone_outlined,
-  //                     _nomineePhoneController,
-  //                     keyboardType: TextInputType.phone),
-  //               if (activeAccount == null) const SizedBox(height: 16),
-  //               if (activeAccount == null)
-  //                 _buildTextField("Nominee Relation", Icons.group_outlined,
-  //                     _nomineeRelationController),
-  //               if (activeAccount == null) const SizedBox(height: 16),
-  //             ],
-  //           ],
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
   String? selectedSchemeDisplay;
   Widget _buildWebForm() {
     // Determine if we're in "new account" mode (activeAccount is null)
@@ -316,16 +181,6 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
         Expanded(
           child: Column(
             children: [
-              // Scheme Type (always shown)
-              // _buildDropdown(
-              //   label: "Scheme Type",
-              //   value: selectedSchemeType,
-              //   items: schemeTypeList,
-              //   onChanged: (val) => setState(() {
-              //     selectedSchemeType = val;
-              //     _generateCustomerId(val == "Wishlist" ? "WL" : "ASP");
-              //   }),
-              // ),
               _buildDropdown(
                 label: "Scheme Type",
                 value: selectedSchemeDisplay,
@@ -366,15 +221,6 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
                 const SizedBox(height: 16),
               ],
 
-              // Customer ID (only for new accounts)
-              // if (isNewAccount) ...[
-              //   _buildTextField(
-              //       "Customer ID", Icons.badge_outlined, _custIdController,
-              //       isReadOnly: true),
-              //   const SizedBox(height: 16),
-              // ],
-
-              // Phone Number (only for new accounts)
               if (isNewAccount) ...[
                 _buildTextField(
                   "Phone Number",
@@ -848,143 +694,6 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
     );
   }
 
-  // Widget _buildMobileForm() {
-  //   return Column(
-  //     children: [
-  //       // Scheme Type
-  //       _buildDropdown(
-  //         label: "Scheme Type",
-  //         value: selectedSchemeType,
-  //         items: schemeTypeList,
-  //         onChanged: (val) => setState(() {
-  //           selectedSchemeType = val;
-  //           _generateCustomerId(val == "Wishlist" ? "WL" : "ASP");
-  //         }),
-  //       ),
-  //       const SizedBox(height: 16),
-  //       _buildCountryDropdown(),
-  //       // Expanded(
-  //       //   child: _buildDropdown(
-  //       //     label: "Country",
-  //       //     value: selectedCountry,
-  //       //     items: countryList,
-  //       //     onChanged: (val) => setState(() => selectedCountry = val),
-  //       //   ),
-  //       // ),
-  //       const SizedBox(height: 16),
-  //       _buildBranchDropdown(),
-  //       const SizedBox(height: 16),
-
-  //       // Customer Name
-  //       _buildTextField("Customer Name", Icons.person_outline, _nameController,
-  //           isRequired: true),
-  //       const SizedBox(height: 16),
-
-  //       // Customer ID
-  //       _buildTextField("Customer ID", Icons.perm_identity, _custIdController,
-  //           isReadOnly: true),
-  //       // const SizedBox(height: 16),
-
-  //       // // Order Advance Type
-  //       // _buildDropdown(
-  //       //   label: "Order Advance",
-  //       //   value: selectedOdType,
-  //       //   items: orderAdvList,
-  //       //   onChanged: (val) => setState(() => selectedOdType = val),
-  //       // ),
-  //       const SizedBox(height: 16),
-
-  //       // Phone Number
-  //       _buildTextField(
-  //         "Phone Number",
-  //         Icons.phone_outlined,
-  //         _phoneController,
-  //         isRequired: true,
-  //         keyboardType: TextInputType.phone,
-  //         validator: (value) {
-  //           if (value == null || value.isEmpty) return 'Required';
-  //           if (value.length != 10) return 'Invalid phone number';
-  //           return null;
-  //         },
-  //       ),
-  //       const SizedBox(height: 16),
-
-  //       // Address
-  //       _buildTextField(
-  //         "Address",
-  //         Icons.home_outlined,
-  //         _addressController,
-  //         isRequired: true,
-  //         maxLines: 3,
-  //       ),
-  //       const SizedBox(height: 16),
-
-  //       // Country and Branch selection
-  //       Row(
-  //         children: [
-  //           Expanded(
-  //             child: _buildDropdown(
-  //               label: "Country",
-  //               value: selectedCountry,
-  //               items: countryList,
-  //               onChanged: (val) => setState(() => selectedCountry = val),
-  //             ),
-  //           ),
-  //           const SizedBox(width: 16),
-  //           Expanded(
-  //             child: _buildDropdown(
-  //               label: "Branch",
-  //               value: selectedBranch,
-  //               items: branchList,
-  //               onChanged: (val) => setState(() => selectedBranch = val),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //       const SizedBox(height: 16),
-
-  //       // Additional fields checkbox
-  //       Row(
-  //         children: [
-  //           Checkbox(
-  //             value: _showAdditionalFields,
-  //             onChanged: (value) =>
-  //                 setState(() => _showAdditionalFields = value ?? false),
-  //           ),
-  //           Text('Show Additional Fields'),
-  //         ],
-  //       ),
-  //       const SizedBox(height: 10),
-
-  //       // Additional fields (conditionally shown)
-  //       if (_showAdditionalFields) ...[
-  //         _buildTextField("Email", Icons.email_outlined, _emailController),
-  //         const SizedBox(height: 16),
-  //         _buildTextField(
-  //             "Place", Icons.location_on_outlined, _placeController),
-  //         const SizedBox(height: 16),
-  //         _buildDateField("Date of Birth"),
-  //         const SizedBox(height: 16),
-  //         _buildTextField("Nominee", Icons.person_outline, _nomineeController),
-  //         const SizedBox(height: 16),
-  //         _buildTextField(
-  //             "Nominee Phone", Icons.phone_outlined, _nomineePhoneController,
-  //             keyboardType: TextInputType.phone),
-  //         const SizedBox(height: 16),
-  //         _buildTextField("Nominee Relation", Icons.group_outlined,
-  //             _nomineeRelationController),
-  //         const SizedBox(height: 16),
-  //         _buildTextField("Aadhar Card", Icons.numbers, _aadharController),
-  //         const SizedBox(height: 16),
-  //         _buildTextField("PAN Card", Icons.numbers, _panController),
-  //         const SizedBox(height: 16),
-  //         _buildTextField("PIN Code", Icons.code, _pinCodeController,
-  //             keyboardType: TextInputType.number),
-  //         const SizedBox(height: 16),
-  //       ],
-  //     ],
-  //   );
-  // }
   Widget _buildMobileForm() {
     final bool isNewAccount = activeAccount == null;
 
@@ -1029,18 +738,6 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
           const SizedBox(height: 16),
         ],
 
-        // Customer ID (only for new accounts)
-        // if (isNewAccount) ...[
-        //   _buildTextField(
-        //     "Customer ID",
-        //     Icons.badge_outlined,
-        //     _custIdController,
-        //     isReadOnly: true,
-        //   ),
-        //   const SizedBox(height: 16),
-        // ],
-
-        // Phone Number (only for new accounts)
         if (isNewAccount) ...[
           _buildTextField(
             "Phone Number",

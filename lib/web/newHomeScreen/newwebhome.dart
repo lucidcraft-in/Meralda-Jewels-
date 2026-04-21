@@ -14,6 +14,7 @@ import '../webHome.dart';
 import '../webPayScreen.dart';
 import '../widgets/jewelleryLocations.dart';
 import 'widget/planeSection.dart';
+import 'dart:html' as html;
 
 class Newwebhome extends StatefulWidget {
   const Newwebhome({Key? key}) : super(key: key);
@@ -186,11 +187,24 @@ class _NewwebhomeState extends State<Newwebhome> {
                 const SizedBox(width: 20),
                 const Icon(Icons.phone, size: 18, color: Color(0xFF1A4D3E)),
                 const SizedBox(width: 5),
-                const Text(
-                  '+971 4 444 4444',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF1A4D3E),
+                // const Text(
+                //   '91 9605789000',
+                //   style: TextStyle(
+                //     fontSize: 14,
+                //     color: Color(0xFF1A4D3E),
+                //   ),
+                // ),
+                GestureDetector(
+                  onTap: () {
+                    html.window.open("tel:+919605789000", "_self");
+                  },
+                  child: const Text(
+                    '91 9605789000',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF1A4D3E),
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 20),

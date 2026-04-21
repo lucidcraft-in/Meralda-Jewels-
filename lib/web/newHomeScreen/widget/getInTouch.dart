@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../utils/commonHead.dart';
 
+import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:html' as html; // only for web
+
 class ContactPage extends StatefulWidget {
   const ContactPage({Key? key}) : super(key: key);
 
@@ -23,6 +27,30 @@ class _ContactPageState extends State<ContactPage> {
     _phoneController.dispose();
     _messageController.dispose();
     super.dispose();
+  }
+
+  void openPhone(String phone) async {
+    final cleanPhone = phone.replaceAll(" ", "").replaceAll("+", "");
+
+    if (kIsWeb) {
+      html.window.open("tel:+$cleanPhone", "_self");
+    } else {
+      final uri = Uri.parse("tel:+$cleanPhone");
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      }
+    }
+  }
+
+  void openEmail(String email) async {
+    if (kIsWeb) {
+      html.window.open("mailto:$email", "_self");
+    } else {
+      final uri = Uri.parse("mailto:$email");
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      }
+    }
   }
 
   @override
@@ -261,28 +289,34 @@ class _ContactPageState extends State<ContactPage> {
               _buildContactItem(
                 icon: Icons.phone,
                 title: 'Phone',
-                subtitle: '+971 4 444 4444',
+                subtitle: '+91 963331363',
                 description: 'Mon-Sat: 9:00 AM - 9:00 PM',
+                onTap: () {
+                  openPhone('+91 963331363');
+                },
               ),
               _buildContactItem(
                 icon: Icons.email,
                 title: 'Email',
-                subtitle: 'plans@meraldajewels.com',
+                subtitle: 'smm@meraldajewels.com',
                 description: 'We\'ll respond within 24 hours',
+                onTap: () {
+                  openEmail('smm@meraldajewels.com');
+                },
               ),
               _buildContactItem(
                 icon: Icons.location_on,
                 title: 'Visit Our Showroom',
-                subtitle: 'Gold Souk, Deira',
-                description: 'Dubai, UAE',
+                subtitle: 'Meralda, Mavoor Road',
+                description: 'Kozikode, Kerala',
               ),
-              _buildContactItem(
-                icon: Icons.chat,
-                title: 'WhatsApp',
-                subtitle: '+871 50 XXX XXXX',
-                description: 'Quick support via chat',
-                isLast: true,
-              ),
+              // _buildContactItem(
+              //   icon: Icons.chat,
+              //   title: 'WhatsApp',
+              //   subtitle: '+871 50 XXX XXXX',
+              //   description: 'Quick support via chat',
+              //   isLast: true,
+              // ),
             ],
           ),
         ),
@@ -363,59 +397,63 @@ class _ContactPageState extends State<ContactPage> {
     required String subtitle,
     required String description,
     bool isLast = false,
+    VoidCallback? onTap,
   }) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 30),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF3E6),
-              borderRadius: BorderRadius.circular(8),
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: isLast ? 0 : 30),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3E6),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: const Color(0xFFD4A574),
+                size: 20,
+              ),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFFD4A574),
-              size: 20,
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontFamily: 'playfair',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2C3E50),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Color(0xFF2C3E50),
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'playfair',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF2C3E50),
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF2C3E50),
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
