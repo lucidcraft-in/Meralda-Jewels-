@@ -231,7 +231,7 @@ class _WebprofileState extends State<Webprofile> with TickerProviderStateMixin {
                 children: [
                   Expanded(child: _buildNomineeCard()),
                   const SizedBox(width: 20),
-                  Expanded(child: _buildDocumentCard()),
+                  Expanded(child: _buildBankDetailsCard()),
                 ],
               ),
               const SizedBox(height: 20),
@@ -258,7 +258,7 @@ class _WebprofileState extends State<Webprofile> with TickerProviderStateMixin {
           children: [
             Expanded(child: _buildNomineeCard()),
             const SizedBox(width: 20),
-            Expanded(child: _buildDocumentCard()),
+            Expanded(child: _buildBankDetailsCard()),
           ],
         ),
         const SizedBox(width: 20),
@@ -826,6 +826,13 @@ class _WebprofileState extends State<Webprofile> with TickerProviderStateMixin {
           label: 'Country',
           value: localUserData?.country,
         ),
+        _buildInfoTile(
+          icon: Icons.pin_drop,
+          label: 'PIN Code',
+          value: localUserData?.pinCode?.isNotEmpty == true
+              ? localUserData!.pinCode
+              : 'Not specified',
+        ),
       ],
     );
   }
@@ -860,31 +867,6 @@ class _WebprofileState extends State<Webprofile> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildDocumentCard() {
-    return _buildSectionCard(
-      title: 'Documents',
-      icon: Icons.description,
-      children: [
-        _buildInfoTile(
-          icon: Icons.credit_card,
-          label: 'Aadhar',
-          value: localUserData?.adharCard,
-        ),
-        _buildInfoTile(
-          icon: Icons.badge,
-          label: 'PAN',
-          value: localUserData?.panCard,
-        ),
-        _buildInfoTile(
-          icon: Icons.pin_drop,
-          label: 'PIN Code',
-          value: localUserData?.pinCode?.isNotEmpty == true
-              ? localUserData!.pinCode
-              : 'Not specified',
-        ),
-      ],
-    );
-  }
 
   Widget _buildSectionCard({
     required String title,

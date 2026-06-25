@@ -42,7 +42,7 @@ class FooterSection extends StatelessWidget {
             ),
             const SizedBox(width: 60),
             Expanded(
-              child: _buildSupport(),
+              child: _buildPolicies(),
             ),
           ],
         ),
@@ -64,7 +64,7 @@ class FooterSection extends StatelessWidget {
         const SizedBox(height: 40),
         _buildOurPlans(),
         const SizedBox(height: 40),
-        _buildSupport(),
+        _buildPolicies(),
         const SizedBox(height: 50),
         _buildDivider(),
         const SizedBox(height: 30),
@@ -167,17 +167,16 @@ class FooterSection extends StatelessWidget {
         _buildFooterLink('Aspire Plan'),
         _buildFooterLink('Wishlist Plan'),
         _buildFooterLink('Plan Calculator'),
-        _buildFooterLink('Terms & Conditions'),
       ],
     );
   }
 
-  Widget _buildSupport() {
+  Widget _buildPolicies() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Support',
+          'Policies',
           style: TextStyle(
             color: Color(0xFFCB9E5F),
             fontSize: 20,

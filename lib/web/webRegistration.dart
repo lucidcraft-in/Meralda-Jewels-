@@ -45,6 +45,10 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
   final _nomineeRelationController = TextEditingController();
   final _aadharController = TextEditingController();
   final _panController = TextEditingController();
+  final _bankAccountController = TextEditingController();
+  final _bankNameController = TextEditingController();
+  final _bankIfscController = TextEditingController();
+  final _bankBranchNameController = TextEditingController();
   final _pinCodeController = TextEditingController();
   final _custIdController = TextEditingController();
   final openingAmtCntrl = TextEditingController();
@@ -108,6 +112,10 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
         _aadharController.text = activeAccount.adharCard ?? "";
         _panController.text = activeAccount.panCard ?? "";
         _pinCodeController.text = activeAccount.pinCode ?? "";
+        _bankAccountController.text = activeAccount.bankDetails?.accountNumber ?? "";
+        _bankNameController.text = activeAccount.bankDetails?.bankName ?? "";
+        _bankIfscController.text = activeAccount.bankDetails?.ifsc ?? "";
+        _bankBranchNameController.text = activeAccount.bankDetails?.branch ?? "";
         // selectedCountry = activeAccount.country;
         aadharFrontUrl = activeAccount.aadharFrontUrl;
         aadharBackUrl = activeAccount.aadharBackUrl;
@@ -451,9 +459,9 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
   }
 
   Widget _buildKYCSection() {
-    print(_aadharController.text);
-    print(_aadharFrontImage);
-    print(_aadharBackImage);
+    // print(_aadharController.text);
+    // print(_aadharFrontImage);
+    // print(_aadharBackImage);
     return Card(
       elevation: 4,
       child: Padding(
@@ -461,6 +469,48 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text('Bank Details (Mandatory)',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+
+            // Bank Account Number
+            _buildTextField(
+              "Bank Account Number*",
+              Icons.account_balance,
+              _bankAccountController,
+              isRequired: true,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+
+            // Bank Name
+            _buildTextField(
+              "Bank Name*",
+              Icons.business,
+              _bankNameController,
+              isRequired: true,
+            ),
+            const SizedBox(height: 16),
+
+            // IFSC Code
+            _buildTextField(
+              "IFSC Code*",
+              Icons.code,
+              _bankIfscController,
+              isRequired: true,
+            ),
+            const SizedBox(height: 16),
+
+            // Branch
+            _buildTextField(
+              "Branch*",
+              Icons.location_on,
+              _bankBranchNameController,
+              isRequired: true,
+            ),
+            const SizedBox(height: 16),
+
+            /*
             Text('KYC Documents (Mandatory)',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
@@ -549,6 +599,7 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
               },
               isRequired: true,
             ),
+            */
           ],
         ),
       ),
@@ -1190,6 +1241,18 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
     // For new accounts, validate KYC documents
     final bool isNewAccount = activeAccount == null;
     if (isNewAccount) {
+      if (_bankAccountController.text.isEmpty ||
+          _bankNameController.text.isEmpty ||
+          _bankIfscController.text.isEmpty ||
+          _bankBranchNameController.text.isEmpty) {
+        showErrorDialog(
+          'Bank Details required',
+          'Please fill all required bank details!',
+          context,
+        );
+        return;
+      }
+      /*
       if (_aadharFrontImageBytes == null ||
           _aadharBackImageBytes == null ||
           _panCardImageBytes == null) {
@@ -1200,6 +1263,7 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
         );
         return;
       }
+      */
     }
 
     // Save form data
@@ -1210,6 +1274,7 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
     });
 
     try {
+    /*
       // Upload images for new accounts only
       if (isNewAccount) {
         aadharFrontUrl = await _uploadImage(
@@ -1237,6 +1302,7 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
           throw 'Failed to upload one or more images';
         }
       }
+    */
 
       if (widget.type != "add") {
         // UPDATE EXISTING ACCOUNT
@@ -1264,6 +1330,14 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
           }
           if (_pinCodeController.text.isNotEmpty) {
             updateData["pinCode"] = _pinCodeController.text;
+          }
+          if (_bankAccountController.text.isNotEmpty) {
+            updateData["bankDetails"] = BankDetailsModel(
+              accountNumber: _bankAccountController.text,
+              bankName: _bankNameController.text,
+              ifsc: _bankIfscController.text,
+              branch: _bankBranchNameController.text,
+            ).toMap();
           }
 
           // Update existing Firestore doc
@@ -1327,7 +1401,13 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
             aadharBackUrl: aadharBackUrl,
             panCardUrl: panCardUrl,
             updatedDate: DateTime.now(),
-            status: CustomerStatus.pending);
+            status: CustomerStatus.pending,
+            bankDetails: BankDetailsModel(
+              accountNumber: _bankAccountController.text,
+              bankName: _bankNameController.text,
+              ifsc: _bankIfscController.text,
+              branch: _bankBranchNameController.text,
+            ));
 
         print(user.toMap().toString());
 
@@ -1544,6 +1624,10 @@ class _UserRegistrationDialogState extends State<UserRegistrationDialog> {
     _nomineeRelationController.dispose();
     _aadharController.dispose();
     _panController.dispose();
+    _bankAccountController.dispose();
+    _bankNameController.dispose();
+    _bankIfscController.dispose();
+    _bankBranchNameController.dispose();
     _pinCodeController.dispose();
     _custIdController.dispose();
     super.dispose();
