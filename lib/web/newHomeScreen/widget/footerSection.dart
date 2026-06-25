@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:meralda_gold_user/web/webPolicies.dart';
 
 class FooterSection extends StatelessWidget {
   const FooterSection({Key? key}) : super(key: key);
@@ -13,16 +14,16 @@ class FooterSection extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth > 900) {
-            return _buildDesktopFooter();
+            return _buildDesktopFooter(context);
           } else {
-            return _buildMobileFooter();
+            return _buildMobileFooter(context);
           }
         },
       ),
     );
   }
 
-  Widget _buildDesktopFooter() {
+  Widget _buildDesktopFooter(BuildContext context) {
     return Column(
       children: [
         Row(
@@ -42,7 +43,7 @@ class FooterSection extends StatelessWidget {
             ),
             const SizedBox(width: 60),
             Expanded(
-              child: _buildPolicies(),
+              child: _buildPolicies(context),
             ),
           ],
         ),
@@ -54,7 +55,7 @@ class FooterSection extends StatelessWidget {
     );
   }
 
-  Widget _buildMobileFooter() {
+  Widget _buildMobileFooter(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -64,7 +65,7 @@ class FooterSection extends StatelessWidget {
         const SizedBox(height: 40),
         _buildOurPlans(),
         const SizedBox(height: 40),
-        _buildPolicies(),
+        _buildPolicies(context),
         const SizedBox(height: 50),
         _buildDivider(),
         const SizedBox(height: 30),
@@ -171,7 +172,7 @@ class FooterSection extends StatelessWidget {
     );
   }
 
-  Widget _buildPolicies() {
+  Widget _buildPolicies(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -184,19 +185,31 @@ class FooterSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 25),
-        _buildFooterLink('Customer Login'),
-        _buildFooterLink('Track Payments'),
-        _buildFooterLink('Privacy Policy'),
-        _buildFooterLink('Refund Policy'),
+        _buildFooterLink('Refund Policy', onTap: () => _navigateToPolicy(context, 'Refund Policy')),
+        _buildFooterLink('Buyback Policy', onTap: () => _navigateToPolicy(context, 'Buyback Policy')),
+        _buildFooterLink('Sales Return Policy', onTap: () => _navigateToPolicy(context, 'Sales Return Policy')),
+        _buildFooterLink('Shipping Policy', onTap: () => _navigateToPolicy(context, 'Shipping Policy')),
+        _buildFooterLink('Cancellation Policy', onTap: () => _navigateToPolicy(context, 'Cancellation Policy')),
+        _buildFooterLink('Privacy Policy', onTap: () => _navigateToPolicy(context, 'Privacy Policy')),
+        _buildFooterLink('Terms & Condition', onTap: () => _navigateToPolicy(context, 'Terms & Condition')),
       ],
     );
   }
 
-  Widget _buildFooterLink(String text) {
+  void _navigateToPolicy(BuildContext context, String policy) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WebPoliciesScreen(initialPolicy: policy),
+      ),
+    );
+  }
+
+  Widget _buildFooterLink(String text, {VoidCallback? onTap}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap ?? () {},
         child: Text(
           text,
           style: const TextStyle(
