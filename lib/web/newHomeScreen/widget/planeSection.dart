@@ -695,15 +695,15 @@ class _PlanCardWidgetState extends State<PlanCardWidget> {
     String city,
   ) async {
     final url = Uri.parse(
-      "https://us-central1-meralda-uae.cloudfunctions.net/api/add-lead",
+      "https://meralda-backend-api.vercel.app/api/add-lead",
     );
 
     final now = DateTime.now();
 
     final body = {
-      "slno": DateTime.now().millisecondsSinceEpoch,
-      "date": "${now.year}-${now.month}-${now.day}",
-      "time": "${now.hour}:${now.minute}",
+      // "slno": DateTime.now().millisecondsSinceEpoch,
+      // "date": "${now.year}-${now.month}-${now.day}",
+      // "time": "${now.hour}:${now.minute}",
       "name": name,
       "phone": phone,
       "message": "Interested in: $schemeName",
